@@ -1,0 +1,11 @@
+.block_lp_coursecategories .sub-content {
+    padding: 0 15px;
+}
+
+.block_lp_coursecategories a[data-toggle=collapse] {
+    color: inherit;
+}
+
+.block_lp_coursecategories a[data-toggle=collapse]:hover, .block_lp_coursecategories a[data-toggle=collapse]:focus {
+    text-decoration: inherit;
+}
