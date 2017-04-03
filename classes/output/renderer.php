@@ -42,9 +42,19 @@ class renderer extends plugin_renderer_base {
      * @param renderable $planlist
      * @return string
      */
-    public function render_plan_list(renderable $planlist) {
+    public function render_plan_list(plan_list $planlist) {
         $data = $planlist->export_for_template($this);
         return parent::render_from_template('block_lp_coursecategories/summary', $data);
     }
 
+
+    /**
+     * Delegar ao template.
+     * @param renderable $planlist
+     * @return string
+     */
+    public function render_full_report(plan_list $planlist) {
+        $data = $planlist->export_for_template($this);
+        return parent::render_from_template('block_lp_coursecategories/full_report', $data);
+    }
 }

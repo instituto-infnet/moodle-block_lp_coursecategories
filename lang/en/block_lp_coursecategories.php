@@ -26,5 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['full_report'] = 'Competencies per course category';
+$string['full_report_link'] = 'View all competencies per course category';
 $string['pluginname'] = 'Learning plans per course category';
 $string['sem_planos'] = 'You don\'t have any learning plans';

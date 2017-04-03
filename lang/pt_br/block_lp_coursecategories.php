@@ -26,5 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['full_report'] = 'Competências por bloco';
+$string['full_report_link'] = 'Ver todas as competências por bloco';
 $string['pluginname'] = 'Planos de aprendizado por bloco';
 $string['sem_planos'] = 'Você não possui planos de aprendizado';

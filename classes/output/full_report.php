@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Renderable da lista planos de aprendizado.
+ * Renderable da lista de competências.
  *
- * Contém a classe plan_list, que exibe a lista de planos de aprendizado do bloco.
+ * Contém a classe fullreport, que exibe a lista de competências por plano de aprendizado.
  *
  * @package    block_lp_coursecategories
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
@@ -43,14 +43,14 @@ use templatable;
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plan_list implements renderable, templatable {
+class full_report implements renderable, templatable {
 
     /** @var array Planos. */
     protected $plans = array();
     /** @var array Categorias de cursos dos planos. */
     protected $plancoursecategories = array();
     /** @var stdClass O usuário. */
-    protected $userid;
+    protected $user;
 
     /**
      * Construtor.
@@ -58,11 +58,7 @@ class plan_list implements renderable, templatable {
      * @param stdClass $userid O usuário.
      */
     public function __construct($userid = null) {
-        global $USER;
-        if (!$userid) {
-            $userid = $USER->id;
-        }
-        $this->userid = $userid;
+        $this->user = $userid;
 
         // Obter os planos de aprendizado.
         $this->plans = api::list_user_plans($userid);
@@ -88,19 +84,13 @@ class plan_list implements renderable, templatable {
                 $plancategories[$plancategory->categoryid] = $category;
             }
 
-            if (isset($plancategory->courseid)) {
-                $coursecompetenciespage = new \tool_lp\output\course_competencies_page($plancategory->courseid);
-                $exportedplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
-            }
-
             $plancategories[$plancategory->categoryid]->plans[] = $exportedplan;
         }
 
         return array(
             'hasplans' => !empty($this->plans),
             'plancategories' => array_values($plancategories),
-            'userid' => $this->userid,
-            'fullreporturl' => new \moodle_url('/blocks/lp_coursecategories/full_report.php')
+            'userid' => $this->user->id
         );
     }
 
@@ -118,7 +108,6 @@ class plan_list implements renderable, templatable {
 
         return $DB->get_records_sql("
             select p.id planid,
-                c.id courseid,
                 cc.id categoryid,
                 cc.name categoryname,
                 cc.sortorder categorysortorder,
@@ -132,6 +121,6 @@ class plan_list implements renderable, templatable {
                 join {course_categories} cc on cc.id = c.category
             where p.userid = ?
             group by p.id
-        ", array($this->userid));
+        ", array($this->user->id));
     }
 }

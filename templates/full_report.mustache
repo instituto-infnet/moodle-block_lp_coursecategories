@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    Resumo.
+    Relatório completo de competências por bloco.
 
     Classes necessárias para JS:
     * None
@@ -30,19 +30,17 @@
     {{#hasplans}}
         <div class="sub-content">
             {{#plancategories}}
-                <a data-toggle="collapse" href="javascript:" data-target="#collapsePlanCategory{{categoryid}}">
-                    {{{categoryname}}}
-                </a>
-                <ul class="collapse" id="collapsePlanCategory{{categoryid}}">
-                    {{#plans}}
-                        <li><a href="{{url}}">{{{name}}}</a></li>
-                    {{/plans}}
-                </ul>
+                <h3>{{{categoryname}}}</h3>
+                {{#plans}}
+                    {{#coursecompetencies}}
+                    <h4>{{{name}}}</h4>
+                    {{> tool_lp/course_competencies_page}}
+                    {{/coursecompetencies}}
+                {{/plans}}
             {{/plancategories}}
         </div>
     {{/hasplans}}
     {{^hasplans}}
         <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}
     {{/hasplans}}
-    <a href="{{fullreporturl}}">{{#str}}full_report_link, block_lp_coursecategories{{/str}}</a>
 </div>
