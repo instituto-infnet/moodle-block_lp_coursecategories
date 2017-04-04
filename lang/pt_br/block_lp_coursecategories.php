@@ -26,6 +26,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['category'] = 'Bloco';
+$string['course'] = 'Disciplina';
 $string['full_report'] = 'Competências por bloco';
 $string['full_report_link'] = 'Ver todas as competências por bloco';
 $string['pluginname'] = 'Planos de aprendizado por bloco';

@@ -78,14 +78,12 @@ class plan_list implements renderable, templatable {
             $planexporter = new plan_exporter($plan, array('template' => $plan->get_template()));
             $exportedplan = $planexporter->export($output);
             $plancategory = $this->plancoursecategories[$exportedplan->id];
+            $plancategoryid = $plancategory->categoryid;
 
-            if (!isset($plancategories[$plancategory->categoryid])) {
-                $category = new \stdClass();
-                $category->categoryname = $plancategory->categoryname;
-                $category->categoryid = $plancategory->categoryid;
-                $category->plans = array();
-
-                $plancategories[$plancategory->categoryid] = $category;
+            if (!isset($plancategory)) {
+                continue;
+            } else if (!isset($plancategories[$plancategoryid])) {
+                $plancategories[$plancategoryid] = $this->create_plan_category_object($plancategoryid, $plancategory->categoryname);
             }
 
             if (isset($plancategory->courseid)) {
@@ -93,15 +91,10 @@ class plan_list implements renderable, templatable {
                 $exportedplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
             }
 
-            $plancategories[$plancategory->categoryid]->plans[] = $exportedplan;
+            $plancategories[$plancategoryid]->plans[] = $exportedplan;
         }
 
-        return array(
-            'hasplans' => !empty($this->plans),
-            'plancategories' => array_values($plancategories),
-            'userid' => $this->userid,
-            'fullreporturl' => new \moodle_url('/blocks/lp_coursecategories/full_report.php')
-        );
+        return $this->get_exported_data($plancategories);
     }
 
     /**
@@ -133,5 +126,23 @@ class plan_list implements renderable, templatable {
             where p.userid = ?
             group by p.id
         ", array($this->userid));
+    }
+
+    private function create_plan_category_object($id, $name) {
+        $category = new \stdClass();
+        $category->categoryid = $id;
+        $category->categoryname = $name;
+        $category->plans = array();
+
+        return $category;
+    }
+
+    private function get_exported_data($plancategories) {
+        return array(
+            'hasplans' => !empty($this->plans),
+            'plancategories' => array_values($plancategories),
+            'userid' => $this->userid,
+            'fullreporturl' => new \moodle_url('/blocks/lp_coursecategories/full_report.php')
+        );
     }
 }

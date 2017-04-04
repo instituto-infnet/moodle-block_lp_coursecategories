@@ -30,17 +30,25 @@
     {{#hasplans}}
         <div class="sub-content">
             {{#plancategories}}
-                <h3>{{{categoryname}}}</h3>
+                <h3>
+                    {{#str}}category, block_lp_coursecategories{{/str}}:
+                    {{{categoryname}}}
+                </h3>
                 {{#plans}}
                     {{#coursecompetencies}}
-                    <h4>{{{name}}}</h4>
-                    {{> tool_lp/course_competencies_page}}
+                    <div class="lp-course-categories-full-report-course">
+                        <h4>
+                            {{#str}}course, block_lp_coursecategories{{/str}}:
+                            {{{name}}}
+                        </h4>
+                        {{> tool_lp/course_competencies_page}}
+                    </div>
                     {{/coursecompetencies}}
                 {{/plans}}
             {{/plancategories}}
         </div>
     {{/hasplans}}
     {{^hasplans}}
-        <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}
+        <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>
     {{/hasplans}}
 </div>
