@@ -2,10 +2,92 @@
     padding: 0 15px;
 }
 
+.block_lp_coursecategories .report-header {
+    text-align: center;
+}
+
 .block_lp_coursecategories a[data-toggle=collapse] {
     color: inherit;
 }
 
 .block_lp_coursecategories a[data-toggle=collapse]:hover, .block_lp_coursecategories a[data-toggle=collapse]:focus {
     text-decoration: inherit;
+}
+
+.lp-course-categories-full-report-category {
+    margin-top: 50px;
+}
+
+.lp-course-categories-full-report-course {
+    margin-left: 30px;
+}
+
+.lp-course-categories-full-report-course-header {
+    cursor: pointer;
+}
+
+.lp-course-categories-full-report-course-header h4 {
+    padding-left: 20px;
+    background: url([[pix:t/expanded]]) left center no-repeat;
+}
+
+.lp-course-categories-full-report-course-header.collapsed h4 {
+    background-image: url([[pix:t/collapsed]]);
+}
+
+.lp-course-categories-full-report-course-header .well,
+.lp-course-categories-full-report-course-header div.span8 .progress {
+    margin-bottom: 0;
+}
+
+.lp-course-categories-full-report-course-header div.span4 {
+    float: none;
+    width: 100%;
+    min-height: 0;
+}
+
+.lp-course-categories-full-report-course-header div.span8 {
+    margin-left: 0;
+}
+
+.lp-course-categories-full-report-course-header .progress .bar {
+    color: #000;
+}
+
+.lp-course-categories-full-report-course-competencies {
+    margin-left: 20px;
+    border-left: 1px solid;
+    padding-left: 10px;
+}
+
+.lp-course-categories-full-report-course-competencies table {
+    margin-bottom: 5px;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-name {
+    font-weight: bold;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-row td {
+    vertical-align: middle;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-grade {
+    text-align: right;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-grade p {
+    margin: 0;
+}
+
+@media print {
+    .lp-course-categories-full-report-course-competencies {
+        height: auto !important;
+    }
+
+    #page-blocks-lp_coursecategories-full_report #block-region-side-pre,
+    #page-blocks-lp_coursecategories-full_report header,
+    #page-blocks-lp_coursecategories-full_report footer {
+        display: none;
+    }
 }

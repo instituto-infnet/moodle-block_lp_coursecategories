@@ -27,8 +27,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['category'] = 'Bloco';
+$string['categorycomplete'] = 'Concluído';
+$string['categoryincomplete'] = 'Não concluído';
 $string['course'] = 'Disciplina';
-$string['full_report'] = 'Competências por bloco';
-$string['full_report_link'] = 'Ver todas as competências por bloco';
+$string['full_report'] = 'Histórico para simples conferência';
+$string['full_report_link'] = 'Ver histórico de competências';
+$string['full_report_warning'] = 'Extrato de blocos, disciplinas e competências fornecido para simples conferência. Não substitui o histórico escolar. Pode não conter dados de todos os blocos que você cursou.';
 $string['pluginname'] = 'Planos de aprendizado por bloco';
 $string['sem_planos'] = 'Você não possui planos de aprendizado';

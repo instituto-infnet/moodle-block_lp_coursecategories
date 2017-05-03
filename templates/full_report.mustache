@@ -26,29 +26,100 @@
     Variáveis de contexto necessárias para este template:
     * hasplans
 }}
-<div>
-    {{#hasplans}}
-        <div class="sub-content">
-            {{#plancategories}}
-                <h3>
-                    {{#str}}category, block_lp_coursecategories{{/str}}:
-                    {{{categoryname}}}
-                </h3>
-                {{#plans}}
-                    {{#coursecompetencies}}
-                    <div class="lp-course-categories-full-report-course">
+<div class="block_lp_coursecategories">
+{{#user}}
+    <div class="report-header">
+        <h2>
+            {{{picture}}}
+            <a href="{{{profileurl}}}">{{{fullname}}}</a>
+        </h2>
+        <h2>{{{category3}}}</h2>
+    </div>
+{{/user}}
+
+<p class="pl-alert  warning">
+{{#str}}full_report_warning, block_lp_coursecategories{{/str}}
+</p>
+
+{{#hasplans}}
+    <div>
+    {{#plancategories}}
+        <div class="lp-course-categories-full-report-category">
+            <h3>
+                {{#str}}category, block_lp_coursecategories{{/str}}:
+                {{{categoryname}}}
+                <span class="label {{categorycomplete}}">{{categorycompletestring}}</span>
+            </h3>
+            {{#plans}}
+                {{#coursecompetencies}}
+                <div class="lp-course-categories-full-report-course">
+                    <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlanCategory{{id}}">
                         <h4>
-                            {{#str}}course, block_lp_coursecategories{{/str}}:
-                            {{{name}}}
+                            {{#str}}course, block_lp_coursecategories{{/str}}
+                            {{planindexincategory}}: {{{name}}}
                         </h4>
-                        {{> tool_lp/course_competencies_page}}
+                        {{#statistics}}
+                        {{> tool_lp/course_competency_statistics}}
+                        {{/statistics}}
                     </div>
-                    {{/coursecompetencies}}
-                {{/plans}}
-            {{/plancategories}}
+
+                    <div class="lp-course-categories-full-report-course-competencies collapse" id="collapsePlanCategory{{id}}">
+                        <div data-region="coursecompetencyactivities">
+                            <p>
+                            {{^coursemodules}}
+                                As competências desta disciplina não são avaliadas em nenhuma atividade
+                            {{/coursemodules}}
+                            {{#coursemodules.0}}
+                                As competências desta disciplina são avaliadas em
+                            {{/coursemodules.0}}
+                            {{#coursemodules}}
+                                <a href="{{url}}" class="competency_activities_avaliable">{{name}}</a>{{^lastitem}}, {{/lastitem}}
+                            {{/coursemodules}}
+                            </p>
+                        </div>
+
+                        <div data-region="coursecompetencies">
+                            <table class="generaltable fullwidth managecompetencies">
+                            <tbody class="drag-parentnode">
+                            {{#competencies}}
+                                <tr class="competency-row drag-samenode" data-id="{{competency.id}}">
+                                    <td class="competency-name">
+                                    {{#competency}}
+                                        <a href="{{lpbaseurl}}user_competency_in_course.php?courseid={{courseid}}&competencyid={{competency.id}}&userid={{gradableuserid}}"
+                                           id="competency-info-link-{{competency.id}}"
+                                           title="{{#str}}viewdetails, tool_lp{{/str}}">
+                                        {{competency.idnumber}}. {{{competency.description}}}
+                                        </a>
+                                    </td>
+                                    {{/competency}}
+
+                                    <td class="competency-grade">
+                                    {{#usercompetencycourse}}
+                                    {{#grade}}
+                                        <p class="tag tag-info {{gradename}}">{{gradename}}</p>
+                                    {{/grade}}
+                                    {{/usercompetencycourse}}
+                                    </td>
+                                </td>
+                                </tr>
+                            {{/competencies}}
+                            </tbody>
+                            </table>
+                            {{^competencies}}
+                            <p class="alert alert-info">
+                                {{#str}}nocompetenciesincourse, tool_lp{{/str}}
+                            </p>
+                            {{/competencies}}
+                        </div>
+                    </div>
+                </div>
+                {{/coursecompetencies}}
+            {{/plans}}
         </div>
-    {{/hasplans}}
-    {{^hasplans}}
-        <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>
-    {{/hasplans}}
+    {{/plancategories}}
+    </div>
+{{/hasplans}}
+{{^hasplans}}
+    <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>
+{{/hasplans}}
 </div>
