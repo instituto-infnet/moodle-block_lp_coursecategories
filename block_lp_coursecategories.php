@@ -43,7 +43,13 @@ class block_lp_coursecategories extends block_base {
      * @return array
      */
     public function applicable_formats() {
-        return array('site' => true, 'my' => true);
+        return array(
+            'site' => true,
+            'my' => true,
+            'user' => true,
+            'blocks-lp_coursecategories-full_report' => true,
+            'admin-tool-lp' => true
+        );
     }
 
     /**

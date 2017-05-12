@@ -22,16 +22,30 @@
     margin-left: 30px;
 }
 
+.lp-course-categories-full-report-category-header,
 .lp-course-categories-full-report-course-header {
     cursor: pointer;
 }
 
-.lp-course-categories-full-report-course-header h4 {
+.lp-course-categories-full-report-category-header h3,
+.lp-course-categories-full-report-course-header h4,
+.block_lp_coursecategories .plancategory{
+    display: block;
+}
+
+.lp-course-categories-full-report-category-header h3,
+.lp-course-categories-full-report-course-header h4,
+.block_lp_coursecategories .plancategory,
+.block_lp_coursecategories .collapsible-actions .collapseall,
+.block_lp_coursecategories .collapsible-actions .expandall {
     padding-left: 20px;
     background: url([[pix:t/expanded]]) left center no-repeat;
 }
 
-.lp-course-categories-full-report-course-header.collapsed h4 {
+.lp-course-categories-full-report-category-header.collapsed h3,
+.lp-course-categories-full-report-course-header.collapsed h4,
+.block_lp_coursecategories .plancategory.collapsed,
+.block_lp_coursecategories .collapsible-actions .expandall {
     background-image: url([[pix:t/collapsed]]);
 }
 
@@ -52,6 +66,15 @@
 
 .lp-course-categories-full-report-course-header .progress .bar {
     color: #000;
+}
+
+.lp-course-categories-full-report-category-header .progress .bar[aria-valuenow="100"] {
+  background-image: -moz-linear-gradient(top, #62c462, #57a957);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62c462), to(#57a957));
+  background-image: -webkit-linear-gradient(top, #62c462, #57a957);
+  background-image: -o-linear-gradient(top, #62c462, #57a957);
+  background-image: linear-gradient(to bottom, #62c462, #57a957);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff62c462', endColorstr='#ff57a957', GradientType=0);
 }
 
 .lp-course-categories-full-report-course-competencies {

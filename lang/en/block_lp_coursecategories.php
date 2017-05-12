@@ -31,6 +31,7 @@ $string['categorycomplete'] = 'Complete';
 $string['categoryincomplete'] = 'Incomplete';
 $string['course'] = 'Course';
 $string['full_report'] = 'Competencies per course category';
+$string['full_report_beta_info'] = 'This report is in beta version. Please send any errors, suggestions or comments to <a>tecnologia.educacional@infnet.edu.br</a>.';
 $string['full_report_link'] = 'View all competencies per course category';
 $string['full_report_warning'] = 'List of courses and categories available for checking. Does not replace the school record. May not contain data for all attended courses.';
 $string['pluginname'] = 'Learning plans per course category';

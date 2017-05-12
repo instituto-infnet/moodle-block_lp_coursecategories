@@ -27,6 +27,10 @@
     * hasplans
 }}
 <div class="block_lp_coursecategories">
+    <p class="pl-alert  info">
+    {{#str}}full_report_beta_info, block_lp_coursecategories{{/str}}
+    </p>
+
 {{#user}}
     <div class="report-header">
         <h2>
@@ -37,23 +41,31 @@
     </div>
 {{/user}}
 
-<p class="pl-alert  warning">
-{{#str}}full_report_warning, block_lp_coursecategories{{/str}}
-</p>
+    <p class="pl-alert  warning">
+    {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
+    </p>
 
 {{#hasplans}}
     <div>
-    {{#plancategories}}
+        <div class="collapsible-actions">
+            <a href="javascript:" class="expandall">{{#str}}expandall{{/str}}</a>
+            <a href="javascript:" class="collapseall hidden">{{#str}}collapseall{{/str}}</a>
+        </div>
+        {{#plancategories}}
         <div class="lp-course-categories-full-report-category">
-            <h3>
-                {{#str}}category, block_lp_coursecategories{{/str}}:
-                {{{categoryname}}}
-                <span class="label {{categorycomplete}}">{{categorycompletestring}}</span>
-            </h3>
+            <div class="lp-course-categories-full-report-category-header" data-toggle="collapse" data-target="#collapsePlanCategory{{categoryid}}">
+                <h3>
+                    {{#str}}category, block_lp_coursecategories{{/str}}:
+                    {{{categoryname}}}
+                    <span class="label {{categorycomplete}}">{{categorycompletestring}}</span>
+                </h3>
+            </div>
+
+            <div id="collapsePlanCategory{{categoryid}}" class="in collapse">
             {{#plans}}
                 {{#coursecompetencies}}
                 <div class="lp-course-categories-full-report-course">
-                    <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlanCategory{{id}}">
+                    <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlan{{id}}">
                         <h4>
                             {{#str}}course, block_lp_coursecategories{{/str}}
                             {{planindexincategory}}: {{{name}}}
@@ -63,8 +75,8 @@
                         {{/statistics}}
                     </div>
 
-                    <div class="lp-course-categories-full-report-course-competencies collapse" id="collapsePlanCategory{{id}}">
-                        <div data-region="coursecompetencyactivities">
+                    <div id="collapsePlan{{id}}" class="lp-course-categories-full-report-course-competencies collapse">
+                        <div>
                             <p>
                             {{^coursemodules}}
                                 As competências desta disciplina não são avaliadas em nenhuma atividade
@@ -78,7 +90,7 @@
                             </p>
                         </div>
 
-                        <div data-region="coursecompetencies">
+                        <div>
                             <table class="generaltable fullwidth managecompetencies">
                             <tbody class="drag-parentnode">
                             {{#competencies}}
@@ -115,11 +127,43 @@
                 </div>
                 {{/coursecompetencies}}
             {{/plans}}
+            </div>
         </div>
-    {{/plancategories}}
+        {{/plancategories}}
     </div>
 {{/hasplans}}
 {{^hasplans}}
     <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>
 {{/hasplans}}
 </div>
+
+{{#js}}
+function getCollapsibleActionsAnchors() {
+    return Array.from(
+        document.querySelectorAll('.block_lp_coursecategories .collapsible-actions a')
+    );
+};
+
+function collapsibleActionsToggle(event) {
+    var selectors = [
+        '.lp-course-categories-full-report-category-header',
+        '.lp-course-categories-full-report-course-header'
+    ];
+
+    var selectorEnding = (event.target.classList.contains('expandall')) ? '.collapsed' : ':not(.collapsed)';
+
+    for (var i = 0; i < selectors.length; i++) {
+        selectors[i] += selectorEnding;
+    }
+
+    Array.from(document.querySelectorAll(selectors.join(', '))).forEach(header => header.click());
+
+    getCollapsibleActionsAnchors().forEach(anchor => anchor.classList.toggle('hidden'));
+};
+
+function addCollapsibleActionsListener() {
+    getCollapsibleActionsAnchors().forEach(anchor => anchor.onclick = collapsibleActionsToggle);
+};
+
+addCollapsibleActionsListener();
+{{/js}}

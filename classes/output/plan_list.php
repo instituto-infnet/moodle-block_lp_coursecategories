@@ -116,7 +116,7 @@ class plan_list implements renderable, templatable {
 
             if (
                 $plancategories[$plancategoryid]->categorycomplete === 'categorycomplete'
-                && $exportedplan->coursecomplete == 0
+                && $plancategory->coursecomplete == 0
             ) {
                 $plancategories[$plancategoryid]->categorycomplete = 'categoryincomplete';
             }
@@ -154,18 +154,27 @@ class plan_list implements renderable, templatable {
                         and c2.fullname not like '%Ambiente de capacitação%'
                         and c2.sortorder <= c.sortorder
                 ) courseindexincategory,
-                MIN(ucc.proficiency) coursecomplete
+                MIN(case
+                    when ucc.proficiency is null then 0
+                    else ucc.proficiency
+                end) coursecomplete
             from {competency_plan} p
                 join {competency_template} t on t.id = p.templateid
                 join {competency_templatecomp} tc on tc.templateid = t.id
-                join {competency_usercompcourse} ucc on ucc.competencyid = tc.competencyid
-                    and ucc.userid = p.userid
-                join {course} c on c.id = ucc.courseid
+                join {competency_coursecomp} ccc on ccc.competencyid = tc.competencyid
+                join {course} c on c.id = ccc.courseid
+                join {context} cx on cx.instanceid = c.id
+                    and cx.contextlevel = '50'
+                join {role_assignments} ra on ra.contextid = cx.id
+                    and ra.userid = p.userid
                 join {course_categories} cc on cc.id = c.category
                     and cc.name like '%[%E%-%E%]%'
                 join {course_categories} cc2 on cc2.id = cc.parent
                     and cc2.name like '%[%-%-%]%'
                 join {course_categories} cc3 on cc3.id = cc2.parent
+                left join {competency_usercompcourse} ucc on ucc.competencyid = tc.competencyid
+                    and ucc.userid = p.userid
+                    and ucc.courseid = ccc.courseid
             where cc3.id = (
                 select cc3_latest.id
                 from {course} c_latest
@@ -174,13 +183,11 @@ class plan_list implements renderable, templatable {
                     join {course_categories} cc2_latest on cc2_latest.id = cc_latest.parent
                         and cc2_latest.name like '%[%-%-%]%'
                     join {course_categories} cc3_latest on cc3_latest.id = cc2_latest.parent
-                    join {context} cx_c on c_latest.id = cx_c.instanceid
-                        and cx_c.contextlevel = '50'
-                    join {role_assignments} ra on ra.contextid = cx_c.id
-                    join {role} r on r.id = ra.roleid
-                        and r.archetype = 'student'
-                where ra.userid = ucc.userid
-                order by ra.timemodified desc
+                    join {context} cx_latest on cx_latest.instanceid = c_latest.id
+                        and cx_latest.contextlevel = '50'
+                    join {role_assignments} ra_latest on ra_latest.contextid = cx_latest.id
+                where ra_latest.userid = p.userid
+                order by ra_latest.timemodified desc
                 limit 1
             )
                 and p.userid = ?
