@@ -14,12 +14,23 @@
     text-decoration: inherit;
 }
 
+.lp-course-categories-warp {
+    margin-top: 32px;
+}
+
 .lp-course-categories-full-report-category {
-    margin-top: 50px;
+    padding: 24px 16px;
+    border-radius: 2px;
+    background: #fff;
+    box-shadow: 0 10px 20px rgba(0,0,0,.19), 0 6px 6px rgba(0,0,0,.23);
+    margin-bottom: 24px;
+    margin-top: 8px;
+    border-top: 5px solid #2ABFD4;
 }
 
 .lp-course-categories-full-report-course {
-    margin-left: 30px;
+    margin-left: 16px;
+    margin-bottom: 24px;
 }
 
 .lp-course-categories-full-report-category-header,
@@ -27,10 +38,27 @@
     cursor: pointer;
 }
 
+.lp-course-categories-full-report-category-header h3 {
+    margin: 0;
+}
+
+.lp-course-categories-full-report-course-header h4 {
+    color: rgba(0, 0, 0, .70);
+}
+
 .lp-course-categories-full-report-category-header h3,
 .lp-course-categories-full-report-course-header h4,
 .block_lp_coursecategories .plancategory{
     display: block;
+}
+
+.lp-course-categories-full-report-category-header h3:hover,
+.lp-course-categories-full-report-course-header h4:hover {
+    color: #089CA8;
+}
+
+.block_lp_coursecategories .collapsible-actions {
+    padding: 0 16px;
 }
 
 .lp-course-categories-full-report-category-header h3,
@@ -49,19 +77,35 @@
     background-image: url([[pix:t/collapsed]]);
 }
 
+.lp-course-categories-full-report-course-header .well {
+    padding: 16px;
+    margin-left: 16px;
+}
+
 .lp-course-categories-full-report-course-header .well,
 .lp-course-categories-full-report-course-header div.span8 .progress {
     margin-bottom: 0;
 }
 
 .lp-course-categories-full-report-course-header div.span4 {
-    float: none;
+    /*float: none;
     width: 100%;
-    min-height: 0;
+    min-height: 0;*/
+    text-align: right;
+    width: 23.623932%;
 }
 
 .lp-course-categories-full-report-course-header div.span8 {
-    margin-left: 0;
+    /*margin-left: 0;*/
+    width: 72.376068%;
+}
+
+.lp-course-categories-full-report-course-header .progresstext {
+    font-size: 12px;
+}
+
+.lp-course-categories-full-report-course-header .progress {
+    margin-top: 10px;
 }
 
 .lp-course-categories-full-report-course-header .progress .bar {
@@ -78,17 +122,69 @@
 }
 
 .lp-course-categories-full-report-course-competencies {
-    margin-left: 20px;
-    border-left: 1px solid;
-    padding-left: 10px;
+    margin-left: 16px;
+    /*border-left: 1px solid;
+    padding-left: 10px;*/
+}
+
+.lp-course-categories-full-report-course-competencies-tree {
+    border-left: 1px dotted #90A4AE;
+    padding: 16px 16px 16px 8px;
+    margin-top: 8px;
+    margin-left: 8px;
+}
+
+.lp-course-categories-full-report-course-competencies-task {
+    padding: 8px 16px;
+    text-align: right;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul {
+    list-style: none;
+    margin: 0;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li {
+    padding: 8px;
+    font-weight: 300;
+    border-bottom: 1px solid #CFD8DC;
+    margin-left: 8px;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:last-child {
+    border-bottom: none;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:hover {
+    background-color: #ECEFF1;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:before {
+    font-family: FontAwesome;
+    content: "\f111";
+    color: #90A4AE;
+    float: left;
+    margin-left: -30px;
+    margin-top: 10px;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:hover:before {
+    color: #FF9800 /*#1DE9B6*/;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-name {
+    font-weight: 400;
+    display: inline-block;
+    width: 90%;
+}
+
+.lp-course-categories-full-report-course-competencies-tree .competency-grade {
+    display: inline-block;
+    float: right;
 }
 
 .lp-course-categories-full-report-course-competencies table {
     margin-bottom: 5px;
-}
-
-.lp-course-categories-full-report-course-competencies .competency-name {
-    font-weight: bold;
 }
 
 .lp-course-categories-full-report-course-competencies .competency-row td {
@@ -113,4 +209,10 @@
     #page-blocks-lp_coursecategories-full_report footer {
         display: none;
     }
+}
+
+
+/* hack para esta tela */
+.block_lp_coursecategories .pl-alert {
+    margin: 16px 0;
 }

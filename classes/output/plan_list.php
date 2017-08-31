@@ -59,10 +59,13 @@ class plan_list implements renderable, templatable {
     /**
      * Construtor.
      */
-    public function __construct() {
+    public function __construct($user = null) {
         global $USER;
+        if (!$user) {
+            $user = $USER;
+        }
+        $this->user = $user;
 
-        $this->user = $USER;
         $userid = $this->user->id;
 
         // Obter os planos de aprendizado.
@@ -75,6 +78,11 @@ class plan_list implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         $this->set_user_data($output);
         $this->set_plan_categories($output);
+
+        global $USER;
+        if ($this->user !== $USER) {
+            $this->set_user_course_competencies($output);
+        }
 
         return $this->get_exported_data($output);
     }
@@ -124,10 +132,11 @@ class plan_list implements renderable, templatable {
             if (isset($plancategory->courseid)) {
                 $coursecompetenciespage = new \tool_lp\output\course_competencies_page($plancategory->courseid);
                 $exportedplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
+                
                 $exportedplan->planindexincategory = $plancategory->courseindexincategory;
                 $exportedplan->category3name = $plancategory->category3name;
 
-                $exportedplan->coursemodules = $this->get_course_competency_activities($exportedplan);
+                $exportedplan->coursemodules = $this->get_course_competency_activities($exportedplan);                
             }
 
             $plancategories[$plancategoryid]->plans[] = $exportedplan;
@@ -243,16 +252,39 @@ class plan_list implements renderable, templatable {
             }
         }
 
+        global $USER;
+        
         return array(
             'hasplans' => !empty($this->plans),
             'plancategories' => $sortedcategories,
             'category3' => $sortedcategories[0]->plans[0]->category3name,
             'user' => $this->user,
-            'fullreporturl' => new \moodle_url('/blocks/lp_coursecategories/full_report.php'),
+            'showstatistics' => $this->user->id === $USER->id,
+            'fullreporturl' => new \moodle_url('/blocks/lp_coursecategories/full_report.php', ['userid' => $this->user->id]),
             'lpbaseurl' => new \moodle_url('/admin/tool/lp/')
         );
     }
 
+    private function set_user_course_competencies(renderer_base $output) {
+        foreach ($this->plancategories as $plancatkey => $plancategories) {
+            foreach ($plancategories->plans as $plankey => $plan) {
+                foreach ($plan->coursecompetencies->competencies as $compkey => $competency) {
+                    $competencyreport = new \report_competency\output\report($competency['coursecompetency']->courseid, $this->user->id);
+                    $exportedusercompetencycourse = $competencyreport->export_for_template($output);
+                    
+                    foreach ($exportedusercompetencycourse->usercompetencies as $usercompetency) {
+                        if ($usercompetency->usercompetencycourse->competencyid === $competency['competency']->id) {
+                            $this->plancategories[$plancatkey]->plans[$plankey]->coursecompetencies->competencies[$compkey]['usercompetencycourse'] = $usercompetency->usercompetencycourse;
+                            $this->plancategories[$plancatkey]->plans[$plankey]->coursecompetencies->competencies[$compkey]['gradableuserid'] = $this->user->id;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     private function compare_categories_order($category1, $category2) {
         if ($category1->categoryorder === $category2->categoryorder) {
             return 0;

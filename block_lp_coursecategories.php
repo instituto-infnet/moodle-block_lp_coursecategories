@@ -78,7 +78,13 @@ class block_lp_coursecategories extends block_base {
 
         // Bloco necessita de um usuário válido, que não seja Visitante, para exibir os planos de aprendizado do usuário.
         if (isloggedin() && !isguestuser()) {
-            $plans = new \block_lp_coursecategories\output\plan_list();
+            
+            if (substr($this->page->url->get_path(), -17) === '/user/profile.php') {
+                global $DB;
+                $user = $DB->get_record('user', array('id' => $this->page->url->get_param('id')), '*', MUST_EXIST);
+            }
+            
+            $plans = new \block_lp_coursecategories\output\plan_list($user);
             if (!$plans->has_content()) {
                 return $this->content;
             }

@@ -25,26 +25,35 @@
 
 require_once(__DIR__ . '/../../config.php');
 
+require_login();
+
 $loggeduserid = $USER->id;
 $params = array('userid' => optional_param('userid', $loggeduserid, PARAM_INT));
 
 $url = new moodle_url('/blocks/lp_coursecategories/full_report.php', $params);
+$strname = get_string('pluginname', 'block_lp_coursecategories');
 $PAGE->set_url($url);
-$context = context_system::instance();
+$PAGE->navbar->add($strname);
+$context = $usercontext = context_user::instance($params['userid'], MUST_EXIST);
 $PAGE->set_context($context);
 
+if ($params['userid'] !== $loggeduserid && has_capability('moodle/competency:competencymanage', $context)) {
+    global $DB;
+    $user = $DB->get_record('user', array('id' => $params['userid']), '*', MUST_EXIST);
+} else {
+    $params['userid'] = $loggeduserid;
+    $user = $USER;
+}
+
+$header = fullname($user);
 
 $title = get_string('full_report', 'block_lp_coursecategories');
 $PAGE->set_title($title);
-$PAGE->set_pagelayout('frontpage');
-
-require_login();
-if ($params['userid'] !== $loggeduserid && !has_capability('moodle/competency:competencymanage', $context)) {
-    $params['userid'] = $loggeduserid;
-}
+$PAGE->set_pagelayout('mypublic');
+$PAGE->set_heading($header);
 
 $output = $PAGE->get_renderer('block_lp_coursecategories');
-$page = new block_lp_coursecategories\output\plan_list($params['userid']);
+$page = new block_lp_coursecategories\output\plan_list($user);
 
 echo $output->header() . $OUTPUT->heading($title);
 echo $output->render_full_report($page);

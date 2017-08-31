@@ -27,26 +27,25 @@
     * hasplans
 }}
 <div class="block_lp_coursecategories">
-    <p class="pl-alert  info">
+    <p class="pl-alert info">
     {{#str}}full_report_beta_info, block_lp_coursecategories{{/str}}
     </p>
-
-{{#user}}
-    <div class="report-header">
-        <h2>
-            {{{picture}}}
-            <a href="{{{profileurl}}}">{{{fullname}}}</a>
-        </h2>
-        <h2>{{{category3}}}</h2>
-    </div>
-{{/user}}
-
-    <p class="pl-alert  warning">
+    <p class="pl-alert warning">
     {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
     </p>
 
+    <!-- {{#user}}
+        <div class="report-header">
+            <h2>
+                {{{picture}}}
+                <a href="{{{profileurl}}}">{{{fullname}}}</a>
+            </h2>
+            <h2>{{{category3}}}</h2>
+        </div>
+    {{/user}} -->
+
 {{#hasplans}}
-    <div>
+    <div class="lp-course-categories-warp">
         <div class="collapsible-actions">
             <a href="javascript:" class="expandall">{{#str}}expandall{{/str}}</a>
             <a href="javascript:" class="collapseall hidden">{{#str}}collapseall{{/str}}</a>
@@ -70,14 +69,49 @@
                             {{#str}}course, block_lp_coursecategories{{/str}}
                             {{planindexincategory}}: {{{name}}}
                         </h4>
-                        {{#statistics}}
-                        {{> tool_lp/course_competency_statistics}}
-                        {{/statistics}}
+                        {{#showstatistics}}
+                            {{#statistics}}
+                            {{> tool_lp/course_competency_statistics}}
+                            {{/statistics}}
+                        {{/showstatistics}}
                     </div>
 
                     <div id="collapsePlan{{id}}" class="lp-course-categories-full-report-course-competencies collapse">
-                        <div>
+                        <!-- Competências -->
+                        <div class="lp-course-categories-full-report-course-competencies-tree">
+                            <ul>
+                            {{#competencies}}
+                                <li data-id="{{competency.id}}" class="clearfix">
+                                    <span class="competency-name">
+                                    {{#competency}}
+                                        <a href="{{lpbaseurl}}user_competency_in_course.php?courseid={{courseid}}&competencyid={{competency.id}}&userid={{gradableuserid}}"
+                                           id="competency-info-link-{{competency.id}}"
+                                           title="{{#str}}viewdetails, tool_lp{{/str}}">
+                                        {{competency.idnumber}}. {{{competency.description}}}
+                                        </a>
+                                    </span>
+                                    {{/competency}}
+
+                                    <span class="competency-grade">
+                                    {{#usercompetencycourse}}
+                                    {{#grade}}
+                                        <span class="tag tag-info {{gradename}}">{{gradename}}</span>
+                                    {{/grade}}
+                                    {{/usercompetencycourse}}
+                                    </span>
+                                </li>
+                            {{/competencies}}
+                            </ul>
+                            {{^competencies}}
+                            <p class="alert alert-info">
+                                {{#str}}nocompetenciesincourse, tool_lp{{/str}}
+                            </p>
+                            {{/competencies}}
+                        </div>
+                        <!-- Tarefa -->
+                        <div class="lp-course-categories-full-report-course-competencies-task">
                             <p>
+                            <i class="fa fa-info-circle" aria-hidden="true"></i>
                             {{^coursemodules}}
                                 As competências desta disciplina não são avaliadas em nenhuma atividade
                             {{/coursemodules}}
@@ -88,40 +122,6 @@
                                 <a href="{{url}}" class="competency_activities_avaliable">{{name}}</a>{{^lastitem}}, {{/lastitem}}
                             {{/coursemodules}}
                             </p>
-                        </div>
-
-                        <div>
-                            <table class="generaltable fullwidth managecompetencies">
-                            <tbody class="drag-parentnode">
-                            {{#competencies}}
-                                <tr class="competency-row drag-samenode" data-id="{{competency.id}}">
-                                    <td class="competency-name">
-                                    {{#competency}}
-                                        <a href="{{lpbaseurl}}user_competency_in_course.php?courseid={{courseid}}&competencyid={{competency.id}}&userid={{gradableuserid}}"
-                                           id="competency-info-link-{{competency.id}}"
-                                           title="{{#str}}viewdetails, tool_lp{{/str}}">
-                                        {{competency.idnumber}}. {{{competency.description}}}
-                                        </a>
-                                    </td>
-                                    {{/competency}}
-
-                                    <td class="competency-grade">
-                                    {{#usercompetencycourse}}
-                                    {{#grade}}
-                                        <p class="tag tag-info {{gradename}}">{{gradename}}</p>
-                                    {{/grade}}
-                                    {{/usercompetencycourse}}
-                                    </td>
-                                </td>
-                                </tr>
-                            {{/competencies}}
-                            </tbody>
-                            </table>
-                            {{^competencies}}
-                            <p class="alert alert-info">
-                                {{#str}}nocompetenciesincourse, tool_lp{{/str}}
-                            </p>
-                            {{/competencies}}
                         </div>
                     </div>
                 </div>
