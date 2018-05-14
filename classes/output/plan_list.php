@@ -26,6 +26,8 @@
 
 namespace block_lp_coursecategories\output;
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot . '/mod/attendance/locallib.php');
+require_once($CFG->dirroot . '/mod/attendance/classes/summary.php');
 
 use core_competency\api;
 use core_competency\external\plan_exporter;
@@ -77,7 +79,7 @@ class plan_list implements renderable, templatable {
 
     public function export_for_template(renderer_base $output) {
         $this->set_user_data($output);
-        $this->set_plan_categories($output);
+        $this->set_plan_data($output);
 
         global $USER;
         if ($this->user !== $USER) {
@@ -108,41 +110,121 @@ class plan_list implements renderable, templatable {
         $this->user = $user;
     }
 
-    private function set_plan_categories(renderer_base $output) {
-        $plancategories = array();
+    private function set_plan_data(renderer_base $output) {
+        $this->plancategories = array();
 
         foreach ($this->plans as $plan) {
             $exportedplan = (new plan_exporter($plan, array('template' => $plan->get_template())))->export($output);
-            $plancategory = $this->plancoursecategories[$exportedplan->id];
-            $plancategoryid = $plancategory->categoryid;
 
-            if (!isset($plancategory)) {
+            if (!isset($this->plancoursecategories[$exportedplan->id])) {
                 continue;
-            } else if (!isset($plancategories[$plancategoryid])) {
-                $plancategories[$plancategoryid] = $this->create_plan_category_object($plancategory);
             }
 
-            if (
-                $plancategories[$plancategoryid]->categorycomplete === 'categorycomplete'
-                && $plancategory->coursecomplete == 0
-            ) {
-                $plancategories[$plancategoryid]->categorycomplete = 'categoryincomplete';
-            }
+            $exportedplan = $this->set_plan_category($exportedplan, $output);
+            $exportedplan = $this->set_attendance_data($exportedplan);
+            $exportedplan = $this->set_completed($exportedplan);
 
-            if (isset($plancategory->courseid)) {
-                $coursecompetenciespage = new \tool_lp\output\course_competencies_page($plancategory->courseid);
-                $exportedplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
-                
-                $exportedplan->planindexincategory = $plancategory->courseindexincategory;
-                $exportedplan->category3name = $plancategory->category3name;
+            $this->plancategories[$exportedplan->plancategoryid]->plans[] = $exportedplan;
+        }
+    }
 
-                $exportedplan->coursemodules = $this->get_course_competency_activities($exportedplan);                
-            }
+    private function set_plan_category($exportedplan, renderer_base $output) {
+        $plancategory = $this->plancoursecategories[$exportedplan->id];
+        $plancategoryid = $plancategory->categoryid;
+        $exportedplan->plancategoryid = $plancategoryid;
 
-            $plancategories[$plancategoryid]->plans[] = $exportedplan;
+        if (!isset($this->plancategories[$plancategoryid])) {
+            $this->plancategories[$plancategoryid] = $this->create_plan_category_object($plancategory);
         }
 
-        $this->plancategories = $plancategories;
+        if (isset($plancategory->courseid)) {
+            $coursecompetenciespage = new \tool_lp\output\course_competencies_page($plancategory->courseid);
+            $exportedplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
+
+            $exportedplan->planindexincategory = $plancategory->courseindexincategory;
+            $exportedplan->category3name = $plancategory->category3name;
+
+            $exportedplan->coursemodules = $this->get_course_competency_activities($exportedplan);
+        }
+
+        return $exportedplan;
+    }
+
+    private function set_attendance_data($exportedplan) {
+        $plancourse = $this->plancoursecategories[$exportedplan->id];
+
+        if (isset($plancourse->attendanceid)) {
+            $attendanceid = $plancourse->attendanceid;
+            $exportedplan->attendancecmid = $plancourse->cmid;
+            $attendancesummary = new \mod_attendance_summary($attendanceid);
+        }
+
+        if (isset($attendancesummary) && !empty($attendancesummary->get_user_taken_sessions_percentages())) {
+            $allsessionssummary = $attendancesummary->get_all_sessions_summary_for($this->user->id);
+            $exportedplan->attendance = $this->get_attendance_percentage($allsessionssummary);
+            $exportedplan->attendanceformatted = sprintf("%.1f%%", $exportedplan->attendance * 100);
+        }
+
+        return $exportedplan;
+    }
+
+    private function set_completed($exportedplan) {
+        $plancategory = $this->plancoursecategories[$exportedplan->id];
+        $plancategoryid = $exportedplan->plancategoryid;
+        $competenciesok = $plancategory->competenciesok;
+
+        $exportedplan->competenciescompletedstring = get_string('competencies_completed_' . $competenciesok, 'block_lp_coursecategories');
+        $exportedplan->competenciescompletedclass = ($competenciesok) ? 'D' : 'ND';
+
+        $attendanceidentifier = 'course_attendance_';
+        if (isset($exportedplan->attendancecmid)) {
+            if ($exportedplan->attendance >= 0.75) {
+                $attendanceidentifier .= 'ok';
+                $exportedplan->attendanceclass = 'D';
+            } else {
+                $attendanceidentifier .= 'insufficient';
+                $exportedplan->attendanceclass = 'ND';
+            }
+        } else {
+            $attendanceidentifier .= 'no_data';
+        }
+
+        $exportedplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
+
+        if ($plancategory->competenciesok == 0) {
+            $this->plancategories[$plancategoryid]->categorycomplete = 'categoryincomplete';
+            $this->plancategories[$plancategoryid]->categorycompleteclass = 'ND';
+        }
+
+        if ($this->plancategories[$plancategoryid]->categorycomplete === 'categorycomplete') {
+            if (!isset($exportedplan->attendancecmid)) {
+            $this->plancategories[$plancategoryid]->categorycomplete = $attendanceidentifier;
+            $this->plancategories[$plancategoryid]->categorycompleteclass = '';
+        } else if ($exportedplan->attendance < 0.75) {
+                $this->plancategories[$plancategoryid]->categorycomplete = 'categoryincomplete';
+                $this->plancategories[$plancategoryid]->categorycompleteclass = 'ND';
+            }
+        }
+
+        return $exportedplan;
+    }
+
+    private function get_attendance_percentage($allsessionssummary) {
+        $numallsessions = $allsessionssummary->numallsessions;
+        $sessionsbyacronym = array_pop($allsessionssummary->userstakensessionsbyacronym);
+
+        $absentsessions = 0;
+        $latesessions = 0;
+
+        if (isset($sessionsbyacronym['Au'])) {
+            $absentsessions = $sessionsbyacronym['Au'];
+        }
+
+        if (isset($sessionsbyacronym['At'])) {
+            $latesessions = $sessionsbyacronym['At'];
+        }
+
+        return ($numallsessions - $absentsessions - floor($latesessions / 2)) / $numallsessions;
     }
 
     private function get_plan_course_categories() {
@@ -163,10 +245,9 @@ class plan_list implements renderable, templatable {
                         and c2.fullname not like '%Ambiente de capacitação%'
                         and c2.sortorder <= c.sortorder
                 ) courseindexincategory,
-                MIN(case
-                    when ucc.proficiency is null then 0
-                    else ucc.proficiency
-                end) coursecomplete
+                MIN(COALESCE(ucc.proficiency, 0)) competenciesok,
+                cm.id cmid,
+                a.id attendanceid
             from {competency_plan} p
                 join {competency_template} t on t.id = p.templateid
                 join {competency_templatecomp} tc on tc.templateid = t.id
@@ -184,6 +265,13 @@ class plan_list implements renderable, templatable {
                 left join {competency_usercompcourse} ucc on ucc.competencyid = tc.competencyid
                     and ucc.userid = p.userid
                     and ucc.courseid = ccc.courseid
+                left join (
+                    {course_modules} cm
+                    join {modules} m on m.id = cm.module
+                        and m.name = 'attendance'
+                    join {attendance} a on a.id = cm.instance
+                ) on cm.course = c.id
+                    and cm.visible = 1
             where cc3.id = (
                 select cc3_latest.id
                 from {course} c_latest
@@ -210,7 +298,10 @@ class plan_list implements renderable, templatable {
         $category->categoryname = $plancategoryrecord->categoryname;
         $category->categoryorder = $plancategoryrecord->categorysortorder;
         $category->categorycomplete = 'categorycomplete';
+        $category->categorycompleteclass = 'D';
         $category->plans = array();
+
+        $category->attendanceid = $plancategoryrecord->attendanceid;
 
         return $category;
     }
@@ -233,7 +324,9 @@ class plan_list implements renderable, templatable {
             );
         }
 
-        end($coursemodules)->lastitem = true;
+        if (!empty($coursemodules)) {
+            end($coursemodules)->lastitem = true;
+        }
 
         return $coursemodules;
     }
@@ -253,7 +346,7 @@ class plan_list implements renderable, templatable {
         }
 
         global $USER;
-        
+
         return array(
             'hasplans' => !empty($this->plans),
             'plancategories' => $sortedcategories,
@@ -271,7 +364,7 @@ class plan_list implements renderable, templatable {
                 foreach ($plan->coursecompetencies->competencies as $compkey => $competency) {
                     $competencyreport = new \report_competency\output\report($competency['coursecompetency']->courseid, $this->user->id);
                     $exportedusercompetencycourse = $competencyreport->export_for_template($output);
-                    
+
                     foreach ($exportedusercompetencycourse->usercompetencies as $usercompetency) {
                         if ($usercompetency->usercompetencycourse->competencyid === $competency['competency']->id) {
                             $this->plancategories[$plancatkey]->plans[$plankey]->coursecompetencies->competencies[$compkey]['usercompetencycourse'] = $usercompetency->usercompetencycourse;
@@ -284,7 +377,7 @@ class plan_list implements renderable, templatable {
             }
         }
     }
-    
+
     private function compare_categories_order($category1, $category2) {
         if ($category1->categoryorder === $category2->categoryorder) {
             return 0;

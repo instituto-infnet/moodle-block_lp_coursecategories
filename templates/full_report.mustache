@@ -34,16 +34,6 @@
     {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
     </p>
 
-    <!-- {{#user}}
-        <div class="report-header">
-            <h2>
-                {{{picture}}}
-                <a href="{{{profileurl}}}">{{{fullname}}}</a>
-            </h2>
-            <h2>{{{category3}}}</h2>
-        </div>
-    {{/user}} -->
-
 {{#hasplans}}
     <div class="lp-course-categories-warp">
         <div class="collapsible-actions">
@@ -56,7 +46,7 @@
                 <h3>
                     {{#str}}category, block_lp_coursecategories{{/str}}:
                     {{{categoryname}}}
-                    <span class="label {{categorycomplete}}">{{categorycompletestring}}</span>
+                    <span class="label {{categorycompleteclass}}">{{categorycompletestring}}</span>
                 </h3>
             </div>
 
@@ -68,6 +58,9 @@
                         <h4>
                             {{#str}}course, block_lp_coursecategories{{/str}}
                             {{planindexincategory}}: {{{name}}}
+                            <br />
+                            <span class="label {{competenciescompletedclass}}">{{competenciescompletedstring}}</span>
+                            <span class="label {{attendanceclass}}">{{attendancestring}}</span>
                         </h4>
                         {{#showstatistics}}
                             {{#statistics}}
@@ -77,6 +70,9 @@
                     </div>
 
                     <div id="collapsePlan{{id}}" class="lp-course-categories-full-report-course-competencies collapse">
+                        {{#attendancecmid}}
+                            Frequência: {{attendanceformatted}}
+                        {{/attendancecmid}}
                         <!-- Competências -->
                         <div class="lp-course-categories-full-report-course-competencies-tree">
                             <ul>
