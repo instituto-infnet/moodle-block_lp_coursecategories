@@ -55,8 +55,12 @@ class plan_list implements renderable, templatable {
     protected $plancategories = array();
     /** @var stdClass O usuário. */
     protected $user;
+    /** @var string Nome da segunda categoria acima do curso. */
+    protected $category2name;
     /** @var string Nome da terceira categoria acima do curso. */
     protected $category3name;
+    /** @var string Classe à distância. */
+    protected $distance = false;
 
     /**
      * Construtor.
@@ -121,7 +125,20 @@ class plan_list implements renderable, templatable {
             }
 
             $exportedplan = $this->set_plan_category($exportedplan, $output);
-            $exportedplan = $this->set_attendance_data($exportedplan);
+
+            if (!isset($this->category2name)) {
+                $this->category2name = $exportedplan->category2name;
+                $this->category3name = $exportedplan->category3name;
+
+                if (preg_match('/\[[^\]]*L.\]/', $this->category2name) === 1) {
+                    $this->distance = true;
+                }
+            }
+
+            if ($this->distance === false) {
+                $exportedplan = $this->set_attendance_data($exportedplan);
+            }
+
             $exportedplan = $this->set_completed($exportedplan);
 
             $this->plancategories[$exportedplan->plancategoryid]->plans[] = $exportedplan;
@@ -142,6 +159,7 @@ class plan_list implements renderable, templatable {
             $exportedplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
 
             $exportedplan->planindexincategory = $plancategory->courseindexincategory;
+            $exportedplan->category2name = $plancategory->category2name;
             $exportedplan->category3name = $plancategory->category3name;
 
             $exportedplan->coursemodules = $this->get_course_competency_activities($exportedplan);
@@ -177,7 +195,10 @@ class plan_list implements renderable, templatable {
         $exportedplan->competenciescompletedclass = ($competenciesok) ? 'D' : 'ND';
 
         $attendanceidentifier = 'course_attendance_';
-        if (isset($exportedplan->attendancecmid)) {
+        if (
+            isset($exportedplan->attendancecmid)
+            && isset($exportedplan->attendance)
+        ) {
             if ($exportedplan->attendance >= 0.75) {
                 $attendanceidentifier .= 'ok';
                 $exportedplan->attendanceclass = 'D';
@@ -196,11 +217,17 @@ class plan_list implements renderable, templatable {
             $this->plancategories[$plancategoryid]->categorycompleteclass = 'ND';
         }
 
-        if ($this->plancategories[$plancategoryid]->categorycomplete === 'categorycomplete') {
-            if (!isset($exportedplan->attendancecmid)) {
-            $this->plancategories[$plancategoryid]->categorycomplete = $attendanceidentifier;
-            $this->plancategories[$plancategoryid]->categorycompleteclass = '';
-        } else if ($exportedplan->attendance < 0.75) {
+        if (
+            $this->plancategories[$plancategoryid]->categorycomplete === 'categorycomplete'
+            && $this->distance === false
+        ) {
+            if (
+                !isset($exportedplan->attendancecmid)
+                || !isset($exportedplan->attendance)
+            ) {
+                $this->plancategories[$plancategoryid]->categorycomplete = $attendanceidentifier;
+                $this->plancategories[$plancategoryid]->categorycompleteclass = '';
+            } else if ($exportedplan->attendance < 0.75) {
                 $this->plancategories[$plancategoryid]->categorycomplete = 'categoryincomplete';
                 $this->plancategories[$plancategoryid]->categorycompleteclass = 'ND';
             }
@@ -237,6 +264,7 @@ class plan_list implements renderable, templatable {
                 cc.id categoryid,
                 cc.name categoryname,
                 cc.sortorder categorysortorder,
+                cc2.name category2name,
                 cc3.name category3name,
                 (
                     select COUNT(1)
@@ -349,7 +377,9 @@ class plan_list implements renderable, templatable {
 
         return array(
             'hasplans' => !empty($this->plans),
+            'distance' => $this->distance,
             'plancategories' => $sortedcategories,
+            'category2' => $sortedcategories[0]->plans[0]->category2name,
             'category3' => $sortedcategories[0]->plans[0]->category3name,
             'user' => $this->user,
             'showstatistics' => $this->user->id === $USER->id,

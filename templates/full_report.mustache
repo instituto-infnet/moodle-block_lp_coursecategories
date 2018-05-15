@@ -60,7 +60,9 @@
                             {{planindexincategory}}: {{{name}}}
                             <br />
                             <span class="label {{competenciescompletedclass}}">{{competenciescompletedstring}}</span>
+                            {{^distance}}
                             <span class="label {{attendanceclass}}">{{attendancestring}}</span>
+                            {{/distance}}
                         </h4>
                         {{#showstatistics}}
                             {{#statistics}}
@@ -70,9 +72,9 @@
                     </div>
 
                     <div id="collapsePlan{{id}}" class="lp-course-categories-full-report-course-competencies collapse">
-                        {{#attendancecmid}}
+                        {{#attendanceformatted}}
                             Frequência: {{attendanceformatted}}
-                        {{/attendancecmid}}
+                        {{/attendanceformatted}}
                         <!-- Competências -->
                         <div class="lp-course-categories-full-report-course-competencies-tree">
                             <ul>
