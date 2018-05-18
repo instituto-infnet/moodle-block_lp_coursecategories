@@ -210,6 +210,7 @@ class plan_list implements renderable, templatable {
             $attendanceidentifier .= 'no_data';
         }
 
+        $exportedplan->attendanceidentifier = $attendanceidentifier;
         $exportedplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
 
         if ($plancategory->competenciesok == 0) {
@@ -252,6 +253,44 @@ class plan_list implements renderable, templatable {
         }
 
         return ($numallsessions - $absentsessions - floor($latesessions / 2)) / $numallsessions;
+    }
+
+    private function get_external_grade($plan) {
+        if (
+            $this->distance !== true
+            && $plan->attendanceidentifier !== 'course_attendance_ok'
+        ) {
+            return get_string('notrated', 'report_competency');
+        }
+
+        $grade = 0;
+        $coursepassed = true;
+
+        $extgradescalevalues = array(
+            '2' => 50,
+            '3' => 75,
+            '4' => 100
+        );
+
+        $competencies = $plan->coursecompetencies->competencies;
+
+        foreach ($competencies as $competency) {
+            $usercompetencycourse = $competency['usercompetencycourse'];
+
+            if ($usercompetencycourse->proficiency !== '1') {
+                $coursepassed = false;
+            } else {
+                $grade += $extgradescalevalues[$usercompetencycourse->grade];
+            }
+        }
+
+        $grade /= count($competencies);
+
+        if ($coursepassed === false) {
+            $grade *= 0.4;
+        }
+
+        return round($grade);
     }
 
     private function get_plan_course_categories() {
@@ -404,6 +443,8 @@ class plan_list implements renderable, templatable {
                         }
                     }
                 }
+
+                $this->plancategories[$plancatkey]->plans[$plankey]->externalgrade = $this->get_external_grade($this->plancategories[$plancatkey]->plans[$plankey]);
             }
         }
     }
