@@ -191,21 +191,16 @@ class plan_list implements renderable, templatable {
         $plancategoryid = $exportedplan->plancategoryid;
         $competenciesok = $plancategory->competenciesok;
 
+        /* Course competencies string */
         $exportedplan->competenciescompletedstring = get_string('competencies_completed_' . $competenciesok, 'block_lp_coursecategories');
-        $exportedplan->competenciescompletedclass = ($competenciesok) ? 'D' : 'ND';
 
+        /* Course attendance string */
         $attendanceidentifier = 'course_attendance_';
         if (
             isset($exportedplan->attendancecmid)
             && isset($exportedplan->attendance)
         ) {
-            if ($exportedplan->attendance >= 0.75) {
-                $attendanceidentifier .= 'ok';
-                $exportedplan->attendanceclass = 'D';
-            } else {
-                $attendanceidentifier .= 'insufficient';
-                $exportedplan->attendanceclass = 'ND';
-            }
+            $attendanceidentifier .= ($exportedplan->attendance >= 0.75) ? 'ok' : 'insufficient';
         } else {
             $attendanceidentifier .= 'no_data';
         }
@@ -213,22 +208,49 @@ class plan_list implements renderable, templatable {
         $exportedplan->attendanceidentifier = $attendanceidentifier;
         $exportedplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
 
-        if ($plancategory->competenciesok == 0) {
-            $this->plancategories[$plancategoryid]->categorycomplete = 'categoryincomplete';
-            $this->plancategories[$plancategoryid]->categorycompleteclass = 'ND';
+        if ($attendanceidentifier !== 'course_attendance_no_data') {
+            $exportedplan->attendancestring .= ': ' . $exportedplan->attendanceformatted;
         }
 
+        /* Course passed string and class */
+        $coursepassedidentifier = 'course_passed_';
+
         if (
-            $this->plancategories[$plancategoryid]->categorycomplete === 'categorycomplete'
-            && $this->distance === false
+            $competenciesok == 1
+            && (
+                $this->distance === true
+                || $attendanceidentifier === 'course_attendance_ok'
+            )
         ) {
+            $coursepassedidentifier .= 'yes';
+            $exportedplan->coursepassedclass = 'D';
+        } else if ($competenciesok == 0) {
+            $coursepassedidentifier .= 'no_competencies';
+        } else if ($this->distance === false) {
+            if ($attendanceidentifier === 'course_attendance_no_data') {
+                $coursepassedidentifier = $attendanceidentifier;
+                $exportedplan->coursepassedclass = '';
+            } else if ($attendanceidentifier === 'course_attendance_insufficient') {
+                $coursepassedidentifier .= 'no_attendance';
+            }
+        }
+
+        $exportedplan->coursepassedidentifier = get_string($coursepassedidentifier, 'block_lp_coursecategories');
+
+        if (!isset($exportedplan->coursepassedclass)) {
+            $exportedplan->coursepassedclass = 'ND';
+        }
+
+        /* Category complete string and class */
+        if ($this->plancategories[$plancategoryid]->categorycomplete !== 'categoryincomplete') {
             if (
-                !isset($exportedplan->attendancecmid)
-                || !isset($exportedplan->attendance)
+                $this->distance === false
+                && $attendanceidentifier === 'course_attendance_no_data'
+                && $this->plancategories[$plancategoryid]->categorycomplete !== $attendanceidentifier
             ) {
                 $this->plancategories[$plancategoryid]->categorycomplete = $attendanceidentifier;
                 $this->plancategories[$plancategoryid]->categorycompleteclass = '';
-            } else if ($exportedplan->attendance < 0.75) {
+            } else if (strpos($coursepassedidentifier, 'course_passed_no') !== false) {
                 $this->plancategories[$plancategoryid]->categorycomplete = 'categoryincomplete';
                 $this->plancategories[$plancategoryid]->categorycompleteclass = 'ND';
             }

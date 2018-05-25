@@ -33,7 +33,6 @@
     margin-bottom: 24px;
 }
 
-.lp-course-categories-full-report-category-header,
 .lp-course-categories-full-report-course-header {
     cursor: pointer;
 }
@@ -52,7 +51,6 @@
     display: block;
 }
 
-.lp-course-categories-full-report-category-header h3:hover,
 .lp-course-categories-full-report-course-header h4:hover {
     color: #089CA8;
 }
@@ -61,18 +59,14 @@
     padding: 0 16px;
 }
 
-.lp-course-categories-full-report-category-header h3,
 .lp-course-categories-full-report-course-header h4,
-.block_lp_coursecategories .plancategory,
 .block_lp_coursecategories .collapsible-actions .collapseall,
 .block_lp_coursecategories .collapsible-actions .expandall {
     padding-left: 20px;
     background: url([[pix:t/expanded]]) left center no-repeat;
 }
 
-.lp-course-categories-full-report-category-header.collapsed h3,
 .lp-course-categories-full-report-course-header.collapsed h4,
-.block_lp_coursecategories .plancategory.collapsed,
 .block_lp_coursecategories .collapsible-actions .expandall {
     background-image: url([[pix:t/collapsed]]);
 }
@@ -88,15 +82,11 @@
 }
 
 .lp-course-categories-full-report-course-header div.span4 {
-    /*float: none;
-    width: 100%;
-    min-height: 0;*/
     text-align: right;
     width: 23.623932%;
 }
 
 .lp-course-categories-full-report-course-header div.span8 {
-    /*margin-left: 0;*/
     width: 72.376068%;
 }
 
@@ -123,16 +113,12 @@
 
 .lp-course-categories-full-report-category-header .label,
 .lp-course-categories-full-report-course-header .label {
-    width: 150pt;
     font-size: 16px;
-    text-align: center;
     padding: 6px 8px;
 }
 
 .lp-course-categories-full-report-course-competencies {
     margin-left: 16px;
-    /*border-left: 1px solid;
-    padding-left: 10px;*/
 }
 
 .lp-course-categories-full-report-course-competencies-tree {
@@ -177,7 +163,7 @@
 }
 
 .lp-course-categories-full-report-course-competencies-tree ul li:hover:before {
-    color: #FF9800 /*#1DE9B6*/;
+    color: #FF9800;
 }
 
 .lp-course-categories-full-report-course-competencies .competency-name {

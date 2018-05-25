@@ -42,7 +42,7 @@
         </div>
         {{#plancategories}}
         <div class="lp-course-categories-full-report-category">
-            <div class="lp-course-categories-full-report-category-header" data-toggle="collapse" data-target="#collapsePlanCategory{{categoryid}}">
+            <div class="lp-course-categories-full-report-category-header">
                 <h3>
                     {{#str}}category, block_lp_coursecategories{{/str}}:
                     {{{categoryname}}}
@@ -50,7 +50,7 @@
                 </h3>
             </div>
 
-            <div id="collapsePlanCategory{{categoryid}}" class="in collapse">
+            <div id="collapsePlanCategory{{categoryid}}">
             {{#plans}}
                 {{#coursecompetencies}}
                 <div class="lp-course-categories-full-report-course">
@@ -59,10 +59,7 @@
                             {{#str}}course, block_lp_coursecategories{{/str}}
                             {{planindexincategory}}: {{{name}}}
                             <br />
-                            <span class="label {{competenciescompletedclass}}">{{competenciescompletedstring}}</span>
-                            {{^distance}}
-                            <span class="label {{attendanceclass}}">{{attendancestring}}</span>
-                            {{/distance}}
+                            <span class="label {{coursepassedclass}}">{{coursepassedidentifier}}</span>
                         </h4>
                         {{#showstatistics}}
                             {{#statistics}}
@@ -72,9 +69,11 @@
                     </div>
 
                     <div id="collapsePlan{{id}}" class="lp-course-categories-full-report-course-competencies collapse">
-                        {{#attendanceformatted}}
-                            Frequência: {{attendanceformatted}}
-                        {{/attendanceformatted}}
+                        {{competenciescompletedstring}}
+                        <br />
+                        {{^distance}}
+                            {{attendancestring}}
+                        {{/distance}}
                         <!-- Competências -->
                         <div class="lp-course-categories-full-report-course-competencies-tree">
                             <ul>
