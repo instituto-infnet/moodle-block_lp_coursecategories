@@ -27,6 +27,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['category'] = 'Course category';
+$string['category2'] = 'Course level 2 category';
+$string['category3'] = 'Course level 3 category';
 $string['categorycomplete'] = 'Complete';
 $string['categoryincomplete'] = 'Incomplete';
 $string['competencies_completed_0'] = 'Competencies incomplete';
@@ -38,9 +40,11 @@ $string['course_attendance_ok'] = 'Attendance OK';
 $string['course_passed_no_attendance'] = 'Failed by competencies';
 $string['course_passed_no_competencies'] = 'Failed by attendance';
 $string['course_passed_yes'] = 'Passed';
+$string['cpf'] = 'ID number';
 $string['full_report'] = 'Competencies per course category';
 $string['full_report_beta_info'] = 'This report is in beta version. Please send any errors, suggestions or comments to <a>tecnologia.educacional@infnet.edu.br</a>.';
 $string['full_report_link'] = 'View all competencies per course category';
 $string['full_report_warning'] = 'List of courses and categories available for checking. Does not replace the school record. May not contain data for all attended courses.';
 $string['pluginname'] = 'Learning plans per course category';
+$string['profile_info_title'] = 'Student info';
 $string['sem_planos'] = 'You don\'t have any learning plans';

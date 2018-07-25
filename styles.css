@@ -28,6 +28,19 @@
     border-top: 5px solid #2ABFD4;
 }
 
+.lp-course-categories-full-report-category .profile-info {
+    width: auto;
+}
+
+.lp-course-categories-full-report-category .profile-info td {
+    padding-right: 50px;
+}
+
+.lp-course-categories-full-report-category td.profile-info-label {
+    font-weight: bold;
+    padding-right: 5px;
+}
+
 .lp-course-categories-full-report-course {
     margin-left: 16px;
     margin-bottom: 24px;
@@ -35,6 +48,10 @@
 
 .lp-course-categories-full-report-course-header {
     cursor: pointer;
+}
+
+.lp-course-categories-warp h2 {
+    font-weight: bold;
 }
 
 .lp-course-categories-full-report-category-header h3 {

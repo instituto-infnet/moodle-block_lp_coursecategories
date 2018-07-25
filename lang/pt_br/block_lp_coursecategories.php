@@ -27,6 +27,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['category'] = 'Bloco';
+$string['category2'] = 'Classe';
+$string['category3'] = 'Programa';
 $string['categorycomplete'] = 'Concluído';
 $string['categoryincomplete'] = 'Não concluído';
 $string['competencies_completed_0'] = 'Faltou demonstrar uma ou mais competências';
@@ -38,9 +40,11 @@ $string['course_attendance_ok'] = 'Frequência suficiente';
 $string['course_passed_no_attendance'] = 'Reprovado por frequência';
 $string['course_passed_no_competencies'] = 'Reprovado por aproveitamento';
 $string['course_passed_yes'] = 'Aprovado';
+$string['cpf'] = 'CPF';
 $string['full_report'] = 'Histórico de competências';
 $string['full_report_beta_info'] = 'Este relatório está em versão beta. Por favor, encaminhe quaisquer erros, sugestões ou comentários para <a href="mailto:tecnologia.educacional@infnet.edu.br">tecnologia.educacional@infnet.edu.br</a>.';
 $string['full_report_link'] = 'Ver histórico de competências';
 $string['full_report_warning'] = 'Extrato de blocos, disciplinas e competências fornecido para simples conferência. Não substitui o histórico escolar. Pode não conter dados de todos os blocos que você cursou.';
 $string['pluginname'] = 'Histórico de competências';
+$string['profile_info_title'] = 'Dados cadastrais';
 $string['sem_planos'] = 'Você não possui planos de aprendizado';

@@ -28,18 +28,21 @@
 }}
 <div>
     {{#hasplans}}
+    {{#plancategories}}
+        <strong>{{{categoryname}}}</strong>
         <div class="sub-content">
-            {{#plancategories}}
+            {{#categories}}
                 <a class="plancategory collapsed" data-toggle="collapse" href="javascript:" data-target="#collapsePlanCategory{{categoryid}}">
                     {{{categoryname}}}
                 </a>
                 <ul class="collapse" id="collapsePlanCategory{{categoryid}}">
                     {{#plans}}
-                        <li><a href="{{url}}">{{planindexincategory}}. {{{name}}}</a></li>
+                        <li><a href="{{url}}">{{planindexincategory}}. {{{coursename}}}</a></li>
                     {{/plans}}
                 </ul>
-            {{/plancategories}}
+            {{/categories}}
         </div>
+    {{/plancategories}}
     {{/hasplans}}
     {{^hasplans}}
         <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}
