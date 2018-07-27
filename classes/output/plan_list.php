@@ -103,6 +103,7 @@ class plan_list implements renderable, templatable {
     }
 
     private function set_plans_data(renderer_base $output) {
+        // Reinicialização da variável porque export_for_template é chamado duas vezes
         $this->plancategories = array();
 
         foreach ($this->plansqueryresult as $courseplan) {
@@ -397,12 +398,14 @@ class plan_list implements renderable, templatable {
     }
 
     private function get_exported_data() {
-        $sortedcategories2 = array();
+        $sortedcategories = array();
         foreach ($this->plancategories as $plancategory) {
-            $sortedcategories = array_values($plancategory->categories);
-            usort($sortedcategories, array($this, "compare_categories_order"));
+            // Removido para não separar os blocos por classe,
+            // mantido para o caso de ser necessário voltar
+            // $sortedcategories = array_values($plancategory->categories);
+            // usort($sortedcategories, array($this, "compare_categories_order"));
 
-            foreach ($sortedcategories as $category) {
+            foreach ($plancategory->categories as $category) {
                 $category->categorycompletestring = get_string($category->categorycomplete, 'block_lp_coursecategories');
 
                 usort($category->plans, array($this, "compare_courses_order"));
@@ -410,17 +413,23 @@ class plan_list implements renderable, templatable {
                 foreach($category->plans as $plan) {
                     usort($plan->coursecompetencies->competencies, array($this, "compare_competencies_idnumber"));
                 }
+
+                $sortedcategories[] = $category;
             }
 
-            $plancategory->categories = $sortedcategories;
-            $sortedcategories2[] = $plancategory;
+            // Removido para não separar os blocos por classe,
+            // mantido para o caso de ser necessário voltar
+            // $plancategory->categories = $sortedcategories;
+            // $sortedcategories2[] = $plancategory;
         }
+
+        usort($sortedcategories, array($this, "compare_categories_order"));
 
         global $USER;
 
         return array(
             'hasplans' => !empty($this->plansqueryresult),
-            'plancategories' => $sortedcategories2,
+            'plancategories' => $sortedcategories,
             'user' => $this->user,
             'cpf' => $this->format_cpf($this->user->profile_field_matricula),
             'category2name' => $plancategory->categoryname,
@@ -457,6 +466,22 @@ class plan_list implements renderable, templatable {
     }
 
     private function compare_categories_order($category1, $category2) {
+        preg_match('/\[(\d\d)E(\d)/', $category1->categoryname, $cat1firsttrimester);
+        preg_match('/\[(\d\d)E(\d)/', $category2->categoryname, $cat2firsttrimester);
+        
+        $category1year = $cat1firsttrimester[1];
+        $category2year = $cat2firsttrimester[1];
+        $category1trim = $cat1firsttrimester[2];
+        $category2trim = $cat2firsttrimester[2];
+
+        if ($category1year === $category2year) {
+            if ($category1trim !== $category2trim) {
+                return ($category1trim < $category2trim) ? -1 : 1;
+            }
+        } else {
+            return ($category1year < $category2year) ? -1 : 1;
+        }
+        
         if ($category1->categoryorder === $category2->categoryorder) {
             return 0;
         }
