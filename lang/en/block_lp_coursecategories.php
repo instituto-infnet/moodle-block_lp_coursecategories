@@ -28,12 +28,14 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['category'] = 'Course category';
 $string['category2'] = 'Course level 2 category';
+$string['category2_category_description'] = 'Course level 2 category';
 $string['category3'] = 'Course level 3 category';
 $string['categorycomplete'] = 'Complete';
 $string['categoryincomplete'] = 'Incomplete';
 $string['competencies_completed_0'] = 'Competencies incomplete';
 $string['competencies_completed_1'] = 'Competencies OK';
 $string['course'] = 'Course';
+$string['course_id_number'] = 'Course ID number';
 $string['course_attendance_insufficient'] = 'Insufficient attendance';
 $string['course_attendance_no_data'] = 'No attendance data';
 $string['course_attendance_ok'] = 'Attendance OK';

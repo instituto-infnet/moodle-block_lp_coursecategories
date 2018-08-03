@@ -37,12 +37,6 @@
                 <td class="profile-info-label">{{#str}}cpf, block_lp_coursecategories{{/str}}</td>
                 <td>{{cpf}}</td>
             </tr>
-            <tr>
-                <td class="profile-info-label">{{#str}}category3, block_lp_coursecategories{{/str}}</td>
-                <td>{{category3name}}</td>
-                <td class="profile-info-label">{{#str}}category2, block_lp_coursecategories{{/str}}</td>
-                <td>{{category2name}}</td>
-            </tr>
         </table>
     </div>
 {{/user}}
@@ -69,7 +63,7 @@
                         <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlan{{courseid}}">
                             <h4>
                                 {{#str}}course, block_lp_coursecategories{{/str}}
-                                {{planindexincategory}}: {{{coursename}}}
+                                {{planindexincategory}}: {{{coursenamewithoutid}}}
                                 <br />
                                 <span class="label {{coursepassedclass}}">{{coursepassedidentifier}}</span>
                             </h4>
@@ -81,6 +75,9 @@
                         </div>
 
                         <div id="collapsePlan{{courseid}}" class="lp-course-categories-full-report-course-competencies collapse">
+                            <p class="lp-course-categories-full-report-category-grey">
+                                {{courseidnumber}}
+                            </p>
                             {{competenciescompletedstring}}
                             <br />
                             {{^distance}}
@@ -137,6 +134,10 @@
                     {{/coursecompetencies}}
                 {{/plans}}
                 </div>
+                <p class="lp-course-categories-full-report-category-grey">
+                    {{#str}}category2_category_description, block_lp_coursecategories{{/str}}:
+                    {{category2name}}
+                </p>
             </div>
         {{/plancategories}}
     </div>
@@ -162,7 +163,6 @@ function getCollapsibleActionsAnchors() {
 
 function collapsibleActionsToggle(event) {
     var selectors = [
-        '.lp-course-categories-full-report-category-header',
         '.lp-course-categories-full-report-course-header'
     ];
 

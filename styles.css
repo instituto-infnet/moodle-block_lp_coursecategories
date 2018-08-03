@@ -41,6 +41,11 @@
     padding-right: 5px;
 }
 
+.lp-course-categories-full-report-category-grey {
+    text-align: right;
+    color: #999;
+}
+
 .lp-course-categories-full-report-course {
     margin-left: 16px;
     margin-bottom: 24px;
@@ -190,7 +195,6 @@
 }
 
 .lp-course-categories-full-report-course-competencies-tree .competency-grade {
-    display: inline-block;
     float: right;
 }
 

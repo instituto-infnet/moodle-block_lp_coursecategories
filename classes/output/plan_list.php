@@ -132,11 +132,18 @@ class plan_list implements renderable, templatable {
         }
 
         if (isset($courseplan->courseid)) {
+            
             $coursecompetenciespage = new \tool_lp\output\course_competencies_page($courseplan->courseid);
             $courseplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
             $courseplan->planindexincategory = $courseplan->courseindexincategory;
             $courseplan->coursemodules = $this->get_course_competency_activities($courseplan);
             $courseplan->distance = $this->plancategories[$category2id]->distance;
+            
+            $coursenameidsplit = $this->get_course_name_id_split($courseplan->coursename);
+            $courseplan->coursenamewithoutid = $coursenameidsplit->coursenamewithoutid;
+            if (isset($coursenameidsplit->courseidnumber)) {
+                $courseplan->courseidnumber = get_string('course_id_number', 'block_lp_coursecategories') . ': ' . $coursenameidsplit->courseidnumber;
+            }
         }
 
         return $courseplan;
@@ -149,7 +156,7 @@ class plan_list implements renderable, templatable {
             $attendancesummary = new \mod_attendance_summary($attendanceid);
         }
 
-        if (isset($attendancesummary) && !empty($attendancesummary->get_user_taken_sessions_percentages())) {
+        if (isset($attendancesummary)) {
             $allsessionssummary = $attendancesummary->get_all_sessions_summary_for($this->user->id);
             $courseplan->attendance = $this->get_attendance_percentage($allsessionssummary);
             $courseplan->attendanceformatted = number_format($courseplan->attendance * 100, 1, ',', null) . '%';
@@ -362,6 +369,7 @@ class plan_list implements renderable, templatable {
 
         $category->categoryid = $plancategoryrecord->categoryid;
         $category->categoryname = $plancategoryrecord->categoryname;
+        $category->category2name = $plancategoryrecord->category2name;
         $category->categoryorder = $plancategoryrecord->categorysortorder;
         $category->categorycomplete = 'categorycomplete';
         $category->categorycompleteclass = 'D';
@@ -463,6 +471,21 @@ class plan_list implements renderable, templatable {
                 }
             }
         }
+    }
+
+    private function get_course_name_id_split($coursename) {
+        preg_match('/^\[([^\s]+)\] (.*)/', $coursename, $regexresult);
+        
+        $coursenameidsplit = new \stdClass();
+
+        if (!empty($regexresult)) {
+            $coursenameidsplit->courseidnumber = $regexresult[1];
+            $coursenameidsplit->coursenamewithoutid = $regexresult[2];
+        } else {
+            $coursenameidsplit->coursenamewithoutid = $coursename;
+        }
+
+        return $coursenameidsplit;
     }
 
     private function compare_categories_order($category1, $category2) {
