@@ -299,7 +299,6 @@ class plan_list implements renderable, templatable {
 
         return $DB->get_records_sql("
             select c.id courseid,
-                p.id planid,
                 c.fullname coursename,
                 c.sortorder coursesortorder,
                 cc.id categoryid,
@@ -321,22 +320,20 @@ class plan_list implements renderable, templatable {
                 MIN(COALESCE(ucc.proficiency, 0)) competenciesok,
                 cm.id cmid,
                 a.id attendanceid
-            from {competency_plan} p
-                join {competency_template} t on t.id = p.templateid
-                join {competency_templatecomp} tc on tc.templateid = t.id
-                join {competency_coursecomp} ccc on ccc.competencyid = tc.competencyid
-                join {course} c on c.id = ccc.courseid
+            from {course} c
+                join {competency_coursecomp} ccc on ccc.courseid = c.id
                 join {context} cx on cx.instanceid = c.id
                     and cx.contextlevel = '50'
                 join {role_assignments} ra on ra.contextid = cx.id
-                    and ra.userid = p.userid
+                join {role} r on r.id = ra.roleid
+                    and r.archetype = 'student'
                 join {course_categories} cc on cc.id = c.category
                 join {course_categories} cc2 on cc2.id = cc.parent
                 join {course_categories} cc3 on cc3.id = cc2.parent
                 join {course_categories} cc4 on cc4.id = cc3.parent
-                left join {competency_usercompcourse} ucc on ucc.competencyid = tc.competencyid
-                    and ucc.userid = p.userid
-                    and ucc.courseid = ccc.courseid
+                left join {competency_usercompcourse} ucc on ucc.competencyid = ccc.competencyid
+                    and ucc.userid = ra.userid
+                    and ucc.courseid = c.id
                 left join (
                     {course_modules} cm
                         join {modules} m on m.id = cm.module
@@ -344,9 +341,9 @@ class plan_list implements renderable, templatable {
                         join {attendance} a on a.id = cm.instance
                 ) on cm.course = c.id
                     and cm.visible = 1
-            where p.userid = ?
-            group by p.id,
-                c.id
+            where ra.userid = ?
+            group by c.id
+            ;
         ", array($this->user->id));
     }
 
