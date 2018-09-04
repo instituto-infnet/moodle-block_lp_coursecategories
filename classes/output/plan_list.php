@@ -72,11 +72,7 @@ class plan_list implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         $this->set_user_data($output);
         $this->set_plans_data($output);
-
-        global $USER;
-        if ($this->user !== $USER) {
-            $this->set_user_course_competencies($output);
-        }
+        $this->set_user_course_competencies($output);
 
         return $this->get_exported_data($output);
     }
@@ -132,11 +128,13 @@ class plan_list implements renderable, templatable {
         }
 
         if (isset($courseplan->courseid)) {
-            
-            $coursecompetenciespage = new \tool_lp\output\course_competencies_page($courseplan->courseid);
-            $courseplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
+            if ($courseplan->visible == 1) {
+                $coursecompetenciespage = new \tool_lp\output\course_competencies_page($courseplan->courseid);
+                $courseplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
+                $courseplan->coursemodules = $this->get_course_competency_activities($courseplan);
+            }
+
             $courseplan->planindexincategory = $courseplan->courseindexincategory;
-            $courseplan->coursemodules = $this->get_course_competency_activities($courseplan);
             $courseplan->distance = $this->plancategories[$category2id]->distance;
             
             $coursenameidsplit = $this->get_course_name_id_split($courseplan->coursename);
@@ -152,7 +150,7 @@ class plan_list implements renderable, templatable {
     private function set_attendance_data($courseplan) {
         if (isset($courseplan->attendanceid)) {
             $attendanceid = $courseplan->attendanceid;
-            $courseplan->attendancecmid = $courseplan->cmid;
+            $courseplan->attendancecmid = $courseplan->attendancecmid;
             $attendancesummary = new \mod_attendance_summary($attendanceid);
         }
 
@@ -195,6 +193,12 @@ class plan_list implements renderable, templatable {
         $coursepassedidentifier = 'course_passed_';
 
         if (
+            $courseplan->visible != 1
+            || $courseplan->ongoing == 1
+        ) {
+            $coursepassedidentifier .= 'ongoing';
+            $courseplan->coursepassedclass = '';
+        } else if (
             $competenciesok == 1
             && (
                 $this->plancategories[$category2id]->distance === true
@@ -214,7 +218,8 @@ class plan_list implements renderable, templatable {
             }
         }
 
-        $courseplan->coursepassedidentifier = get_string($coursepassedidentifier, 'block_lp_coursecategories');
+        $courseplan->coursepassedidentifier = $coursepassedidentifier;
+        $courseplan->coursepassedstring = get_string($coursepassedidentifier, 'block_lp_coursecategories');
 
         if (!isset($courseplan->coursepassedclass)) {
             $courseplan->coursepassedclass = 'ND';
@@ -229,7 +234,7 @@ class plan_list implements renderable, templatable {
             ) {
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = $attendanceidentifier;
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = '';
-            } else if (strpos($coursepassedidentifier, 'course_passed_no') !== false) {
+            } else if ($coursepassedidentifier !== 'course_passed_yes') {
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = 'categoryincomplete';
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = 'ND';
             }
@@ -258,8 +263,12 @@ class plan_list implements renderable, templatable {
 
     private function get_external_grade($plan) {
         if (
-            $plan->distance !== true
-            && $plan->attendanceidentifier !== 'course_attendance_ok'
+            $plan->coursepassedidentifier === 'course_passed_ongoing'
+            || count($plan->coursecompetencies->competencies) === 0
+            || (
+                $plan->distance !== true
+                && $plan->attendanceidentifier !== 'course_attendance_ok'
+            )
         ) {
             return get_string('notrated', 'report_competency');
         }
@@ -301,6 +310,7 @@ class plan_list implements renderable, templatable {
             select c.id courseid,
                 c.fullname coursename,
                 c.sortorder coursesortorder,
+                c.visible,
                 cc.id categoryid,
                 cc.name categoryname,
                 cc.sortorder categorysortorder,
@@ -318,10 +328,10 @@ class plan_list implements renderable, templatable {
                         and c2.sortorder <= c.sortorder
                 ) courseindexincategory,
                 MIN(COALESCE(ucc.proficiency, 0)) competenciesok,
-                cm.id cmid,
-                a.id attendanceid
+                cmatt.id attendancecmid,
+                att.id attendanceid,
+                GREATEST(MAX(COALESCE(agn.cutoffdate,0)), MAX(COALESCE(q.timeclose,0))) > UNIX_TIMESTAMP() ongoing
             from {course} c
-                join {competency_coursecomp} ccc on ccc.courseid = c.id
                 join {context} cx on cx.instanceid = c.id
                     and cx.contextlevel = '50'
                 join {role_assignments} ra on ra.contextid = cx.id
@@ -329,19 +339,44 @@ class plan_list implements renderable, templatable {
                     and r.archetype = 'student'
                 join {course_categories} cc on cc.id = c.category
                 join {course_categories} cc2 on cc2.id = cc.parent
+                    and cc2.name like '[GR%'
                 join {course_categories} cc3 on cc3.id = cc2.parent
                 join {course_categories} cc4 on cc4.id = cc3.parent
+                left join {competency_coursecomp} ccc on ccc.courseid = c.id
                 left join {competency_usercompcourse} ucc on ucc.competencyid = ccc.competencyid
                     and ucc.userid = ra.userid
                     and ucc.courseid = c.id
                 left join (
-                    {course_modules} cm
-                        join {modules} m on m.id = cm.module
-                            and m.name = 'attendance'
-                        join {attendance} a on a.id = cm.instance
-                ) on cm.course = c.id
-                    and cm.visible = 1
+                    {course_modules} cmatt
+                        join {modules} matt on matt.id = cmatt.module
+                            and matt.name = 'attendance'
+                        join {attendance} att on att.id = cmatt.instance
+                ) on cmatt.course = c.id
+                    and cmatt.visible = 1
+                left join (
+                    {course_modules} cmagn
+                        join {modules} magn on magn.id = cmagn.module
+                            and magn.name in ('assign', 'quiz')
+                        join {assign} agn on agn.id = cmagn.instance
+                            and magn.name = 'assign'
+                            and (
+                                agn.name like '%assessment%'
+                                or agn.name like '%apresentação%'
+                                or agn.name like '%entrega%'
+                            )
+                ) on cmagn.course = c.id
+                    and cmagn.visible = 1
+                left join (
+                    {course_modules} cmq
+                        join {modules} mq on mq.id = cmq.module
+                            and mq.name in ('assign', 'quiz')
+                        join {quiz} q on q.id = cmq.instance
+                            and mq.name = 'quiz'
+                            and q.name like '%assessment%'
+                ) on cmq.course = c.id
+                    and cmq.visible = 1
             where ra.userid = ?
+                -- and c.visible = 1
             group by c.id
             ;
         ", array($this->user->id));
@@ -354,7 +389,7 @@ class plan_list implements renderable, templatable {
         $category2->categoryname = $plancategoryrecord->category2name;
         $category2->category3name = $plancategoryrecord->category3name;
         $category2->category4name = $plancategoryrecord->category4name;
-        $category2->distance = (preg_match('/\[[^\]]*L.\]/', $category2->categoryname) === 1);
+        $category2->distance = (preg_match('/\[GRL/', $category2->categoryname) === 1);
 
         $category2->categories = array();
 
@@ -416,7 +451,12 @@ class plan_list implements renderable, templatable {
                 usort($category->plans, array($this, "compare_courses_order"));
 
                 foreach($category->plans as $plan) {
-                    usort($plan->coursecompetencies->competencies, array($this, "compare_competencies_idnumber"));
+                    if (
+                        isset($plan->coursecompetencies)
+                        && count($plan->coursecompetencies->competencies) > 0
+                    ) {
+                        usort($plan->coursecompetencies->competencies, array($this, "compare_competencies_idnumber"));
+                    }
                 }
 
                 $sortedcategories[] = $category;
@@ -450,6 +490,10 @@ class plan_list implements renderable, templatable {
         foreach ($this->plancategories as $plancat2key => $plancategories2) {
             foreach ($plancategories2->categories as $plancatkey => $plancategories) {
                 foreach ($plancategories->plans as $plankey => $plan) {
+                    if (!isset($plan->coursecompetencies)) {
+                        continue;
+                    }
+                    
                     foreach ($plan->coursecompetencies->competencies as $compkey => $competency) {
                         $competencyreport = new \report_competency\output\report($competency['coursecompetency']->courseid, $this->user->id);
                         $exportedusercompetencycourse = $competencyreport->export_for_template($output);

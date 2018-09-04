@@ -41,6 +41,7 @@ $string['course_attendance_no_data'] = 'No attendance data';
 $string['course_attendance_ok'] = 'Attendance OK';
 $string['course_passed_no_attendance'] = 'Failed by competencies';
 $string['course_passed_no_competencies'] = 'Failed by attendance';
+$string['course_passed_ongoing'] = 'Ongoing';
 $string['course_passed_yes'] = 'Passed';
 $string['cpf'] = 'ID number';
 $string['full_report'] = 'Competencies per course category';
