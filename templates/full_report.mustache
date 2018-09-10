@@ -58,7 +58,6 @@
 
                 <div id="collapsePlanCategory{{categoryid}}">
                 {{#plans}}
-                    {{#coursecompetencies}}
                     <div class="lp-course-categories-full-report-course">
                         <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlan{{courseid}}">
                             <h4>
@@ -86,6 +85,7 @@
                             <!-- Competências -->
                             <div class="lp-course-categories-full-report-course-competencies-tree">
                                 <ul>
+                                {{#coursecompetencies}}
                                 {{#competencies}}
                                     <li data-id="{{competency.id}}" class="clearfix">
                                         <span class="competency-name">
@@ -107,12 +107,18 @@
                                         </span>
                                     </li>
                                 {{/competencies}}
-                                </ul>
                                 {{^competencies}}
                                 <p class="alert alert-info">
                                     {{#str}}nocompetenciesincourse, tool_lp{{/str}}
                                 </p>
                                 {{/competencies}}
+                                {{/coursecompetencies}}
+                                {{^coursecompetencies}}
+                                <p class="alert alert-info">
+                                    {{#str}}nocompetenciesincourse, tool_lp{{/str}}
+                                </p>
+                                {{/coursecompetencies}}
+                                </ul>
                             </div>
                             <!-- Tarefa -->
                             <div class="lp-course-categories-full-report-course-competencies-task">
@@ -131,7 +137,6 @@
                             </div>
                         </div>
                     </div>
-                    {{/coursecompetencies}}
                 {{/plans}}
                 </div>
                 <p class="lp-course-categories-full-report-category-grey">

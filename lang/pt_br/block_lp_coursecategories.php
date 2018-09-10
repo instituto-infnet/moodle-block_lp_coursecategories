@@ -39,6 +39,7 @@ $string['course_id_number'] = 'Código da disciplina';
 $string['course_attendance_insufficient'] = 'Frequência insuficiente';
 $string['course_attendance_no_data'] = 'Sem dados de frequência';
 $string['course_attendance_ok'] = 'Frequência suficiente';
+$string['course_attendance_so_far'] = '(até o momento)';
 $string['course_passed_no_attendance'] = 'Reprovado por frequência';
 $string['course_passed_no_competencies'] = 'Reprovado por aproveitamento';
 $string['course_passed_ongoing'] = 'Em andamento';

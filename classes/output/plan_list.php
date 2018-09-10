@@ -136,7 +136,7 @@ class plan_list implements renderable, templatable {
 
             $courseplan->planindexincategory = $courseplan->courseindexincategory;
             $courseplan->distance = $this->plancategories[$category2id]->distance;
-            
+
             $coursenameidsplit = $this->get_course_name_id_split($courseplan->coursename);
             $courseplan->coursenamewithoutid = $coursenameidsplit->coursenamewithoutid;
             if (isset($coursenameidsplit->courseidnumber)) {
@@ -185,10 +185,6 @@ class plan_list implements renderable, templatable {
         $courseplan->attendanceidentifier = $attendanceidentifier;
         $courseplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
 
-        if ($attendanceidentifier !== 'course_attendance_no_data') {
-            $courseplan->attendancestring .= ': ' . $courseplan->attendanceformatted;
-        }
-
         /* Course passed string and class */
         $coursepassedidentifier = 'course_passed_';
 
@@ -198,6 +194,8 @@ class plan_list implements renderable, templatable {
         ) {
             $coursepassedidentifier .= 'ongoing';
             $courseplan->coursepassedclass = '';
+
+            $courseplan->attendancestring.= ' ' . get_string('course_attendance_so_far', 'block_lp_coursecategories');
         } else if (
             $competenciesok == 1
             && (
@@ -216,6 +214,10 @@ class plan_list implements renderable, templatable {
             } else if ($attendanceidentifier === 'course_attendance_insufficient') {
                 $coursepassedidentifier .= 'no_attendance';
             }
+        }
+
+        if ($attendanceidentifier !== 'course_attendance_no_data') {
+            $courseplan->attendancestring .= ': ' . $courseplan->attendanceformatted;
         }
 
         $courseplan->coursepassedidentifier = $coursepassedidentifier;
@@ -376,7 +378,7 @@ class plan_list implements renderable, templatable {
                 ) on cmq.course = c.id
                     and cmq.visible = 1
             where ra.userid = ?
-                -- and c.visible = 1
+                and c.fullname not like '%Projeto de Bloco I %'
             group by c.id
             ;
         ", array($this->user->id));
@@ -493,7 +495,7 @@ class plan_list implements renderable, templatable {
                     if (!isset($plan->coursecompetencies)) {
                         continue;
                     }
-                    
+
                     foreach ($plan->coursecompetencies->competencies as $compkey => $competency) {
                         $competencyreport = new \report_competency\output\report($competency['coursecompetency']->courseid, $this->user->id);
                         $exportedusercompetencycourse = $competencyreport->export_for_template($output);
@@ -516,7 +518,7 @@ class plan_list implements renderable, templatable {
 
     private function get_course_name_id_split($coursename) {
         preg_match('/^\[([^\s]+)\] (.*)/', $coursename, $regexresult);
-        
+
         $coursenameidsplit = new \stdClass();
 
         if (!empty($regexresult)) {
@@ -532,7 +534,7 @@ class plan_list implements renderable, templatable {
     private function compare_categories_order($category1, $category2) {
         preg_match('/\[(\d\d)E(\d)/', $category1->categoryname, $cat1firsttrimester);
         preg_match('/\[(\d\d)E(\d)/', $category2->categoryname, $cat2firsttrimester);
-        
+
         $category1year = $cat1firsttrimester[1];
         $category2year = $cat2firsttrimester[1];
         $category1trim = $cat1firsttrimester[2];
@@ -545,7 +547,7 @@ class plan_list implements renderable, templatable {
         } else {
             return ($category1year < $category2year) ? -1 : 1;
         }
-        
+
         if ($category1->categoryorder === $category2->categoryorder) {
             return 0;
         }

@@ -39,6 +39,7 @@ $string['course_id_number'] = 'Course ID number';
 $string['course_attendance_insufficient'] = 'Insufficient attendance';
 $string['course_attendance_no_data'] = 'No attendance data';
 $string['course_attendance_ok'] = 'Attendance OK';
+$string['course_attendance_so_far'] = '(so far)';
 $string['course_passed_no_attendance'] = 'Failed by competencies';
 $string['course_passed_no_competencies'] = 'Failed by attendance';
 $string['course_passed_ongoing'] = 'Ongoing';
