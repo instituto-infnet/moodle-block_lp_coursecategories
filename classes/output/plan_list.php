@@ -358,25 +358,21 @@ class plan_list implements renderable, templatable {
                 left join (
                     {course_modules} cmagn
                         join {modules} magn on magn.id = cmagn.module
-                            and magn.name in ('assign', 'quiz')
-                        join {assign} agn on agn.id = cmagn.instance
                             and magn.name = 'assign'
+                        join {assign} agn on agn.id = cmagn.instance
                             and (
                                 agn.name like '%assessment%'
                                 or agn.name like '%apresentação%'
                                 or agn.name like '%entrega%'
                             )
                 ) on cmagn.course = c.id
-                    and cmagn.visible = 1
                 left join (
                     {course_modules} cmq
                         join {modules} mq on mq.id = cmq.module
-                            and mq.name in ('assign', 'quiz')
-                        join {quiz} q on q.id = cmq.instance
                             and mq.name = 'quiz'
+                        join {quiz} q on q.id = cmq.instance
                             and q.name like '%assessment%'
                 ) on cmq.course = c.id
-                    and cmq.visible = 1
             where ra.userid = ?
                 and c.fullname not like '%Projeto de Bloco I %'
             group by c.id

@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2018091000;
+$plugin->version   = 2018091300;
 $plugin->requires  = 2016112900;
 $plugin->component = 'block_lp_coursecategories';
 $plugin->dependencies = array(
