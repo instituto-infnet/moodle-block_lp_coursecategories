@@ -41,6 +41,13 @@
     </div>
 {{/user}}
 {{#hasplans}}
+    <p class="pl-alert info">
+    {{#str}}full_report_beta_info, block_lp_coursecategories{{/str}}
+    </p>
+    <p class="pl-alert warning">
+    {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
+    </p>
+
     <div class="lp-course-categories-warp">
         <div class="collapsible-actions">
             <a href="javascript:" class="expandall">{{#str}}expandall{{/str}}</a>
@@ -146,13 +153,6 @@
             </div>
         {{/plancategories}}
     </div>
-
-    <p class="pl-alert info">
-    {{#str}}full_report_beta_info, block_lp_coursecategories{{/str}}
-    </p>
-    <p class="pl-alert warning">
-    {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
-    </p>
 {{/hasplans}}
 {{^hasplans}}
     <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>

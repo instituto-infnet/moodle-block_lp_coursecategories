@@ -332,7 +332,12 @@ class plan_list implements renderable, templatable {
                 MIN(COALESCE(ucc.proficiency, 0)) competenciesok,
                 cmatt.id attendancecmid,
                 att.id attendanceid,
-                GREATEST(MAX(COALESCE(agn.cutoffdate,0)), MAX(COALESCE(q.timeclose,0))) > UNIX_TIMESTAMP() ongoing
+                case
+                    when MIN(ucc.grade) is null
+                        and GREATEST(MAX(COALESCE(agn.cutoffdate,0)), MAX(COALESCE(q.timeclose,0))) + 10 > UNIX_TIMESTAMP()
+                    then 1
+                    else 0
+                end ongoing
             from {course} c
                 join {context} cx on cx.instanceid = c.id
                     and cx.contextlevel = '50'

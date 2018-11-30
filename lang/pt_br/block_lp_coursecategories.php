@@ -46,7 +46,7 @@ $string['course_passed_ongoing'] = 'Em andamento';
 $string['course_passed_yes'] = 'Aprovado';
 $string['cpf'] = 'CPF';
 $string['full_report'] = 'Histórico de aproveitamento de competências';
-$string['full_report_beta_info'] = 'Este relatório está em versão beta. Por favor, encaminhe quaisquer erros, sugestões ou comentários para <a href="mailto:tecnologia.educacional@infnet.edu.br">tecnologia.educacional@infnet.edu.br</a>.';
+$string['full_report_beta_info'] = 'Este relatório está em versão beta. Dados de frequência de disciplinas cursadas no trimestre de 16E2 ou antes ainda não foram importados.<br/><br/>Dados sobre a demonstração de competências de 16E2 ou antes já estão no relatório, mas em alguns casos podem não ter sido importados ainda. Por favor, encaminhe quaisquer erros, sugestões ou comentários para <a href="mailto:tecnologia.educacional@infnet.edu.br">tecnologia.educacional@infnet.edu.br</a>.';
 $string['full_report_link'] = 'Ver histórico de competências';
 $string['full_report_warning'] = 'Extrato de blocos, disciplinas e competências fornecido para simples conferência. Não substitui o histórico escolar. Pode não conter dados de todos os blocos que você cursou.';
 $string['pluginname'] = 'Histórico de competências';
