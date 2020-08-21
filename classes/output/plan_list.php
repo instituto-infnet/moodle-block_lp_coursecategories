@@ -15,44 +15,50 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Renderable da lista planos de aprendizado.
+ * Renderable dos resultados do aluno.
  *
- * Contém a classe plan_list, que exibe a lista de planos de aprendizado do bloco.
+ * Contém a classe plan_list, que obtém os dados de competências, frequências e aproveitamento de um user
  *
  * @package    block_lp_coursecategories
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+ // Declaramos o namespace de que faz parte
 namespace block_lp_coursecategories\output;
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot . '/mod/attendance/locallib.php');
-require_once($CFG->dirroot . '/mod/attendance/classes/summary.php');
+require_once($CFG->dirroot . '/mod/attendance/locallib.php'); // para ler sessões individuais de frequência
+require_once($CFG->dirroot . '/mod/attendance/classes/summary.php'); // para ler resultado final de frequência, calculado pelo plugin de frequência
 
-use core_competency\api;
+// Define que usa neste arquivo esta classe api e plan_exporter que estão no namespace core_competency
+// Não está muito claro de onde o código sabe que existe esse namespace
+use core_competency\api; 
 use core_competency\external\plan_exporter;
 
+// Usa classes do Moodle genéricas, que não estão dentro de namespace algum
 use renderable;
 use renderer_base;
 use templatable;
 
 /**
- * Classe de lista de planos de aprendizado.
+ * Classe de lista de cursos.
  *
- * Exibe a lista de planos de aprendizado do estudante, agrupados por categoria de curso.
+ * Exibe a lista de cursos (ou disciplinas) do estudante, agrupados por categoria de curso.
  *
  * @package    block_lp_coursecategories
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plan_list implements renderable, templatable {
+// respeita o mesmo contrato das classes renderable e templatable, logo pode ser 
+//chamada para o renderer e templatable é que usa o mustache, podendo ser chamada por funções que esperam classes que usam o mustache
+class plan_list implements renderable, templatable { 
 
-    /** @var array Resultado da consulta ao banco com dados dos planos. */
-    protected $plansqueryresult = array();
+    /** @var array Resultado da consulta ao banco com dados dos planos(agora cursos). */
+    protected $plansqueryresult = array(); // Protect para só poderem ser acessadas por outras classes desse namespace
     /** @var array Categorias dos cursos dos planos. */
-    protected $plancategories = array();
+    protected $plancategories = array(); 
     /** @var stdClass O usuário. */
-    protected $user;
+    protected $user; 
 
     /**
      * Construtor.
@@ -63,12 +69,14 @@ class plan_list implements renderable, templatable {
             $user = $USER;
         }
         profile_load_data($user);
-        $this->user = $user;
+        $this->user = $user; // Atribui a variável que até então era local da função a uma propriedade da classe
 
-        // Obter as categorias de cursos de cada plano.
+        // Obter todas as informações que o relatório vai usar a partir do banco, função definida adiante
         $this->plansqueryresult = $this->get_plan_course_categories($user->id);
     }
 
+    // Exporta os dados desejados para um determinado template; o renderer vai decidir para qual template, se Mustache ou não o renderer é que vai decidir
+    // Chamando três funções que estão mais abaixo neste arquivo
     public function export_for_template(renderer_base $output) {
         $this->set_user_data($output);
         $this->set_plans_data($output);
@@ -83,28 +91,35 @@ class plan_list implements renderable, templatable {
      * @return boolean
      */
     public function has_content() {
-        return !empty($this->plansqueryresult);
+        return !empty($this->plansqueryresult); // retorna um boleano, só diz se tem conteúdo ou não, usando o empty que é do PHP
     }
 
+    // Define uma propriedade de dados do usuário, validando que o $output é da classe rendererbase
     private function set_user_data(renderer_base $output) {
         $user = $this->user;
 
+        // Define a foto do perfil
         $user->picture = $output->user_picture($user, array('visibletoscreenreaders' => false));
+        // Monta a url do perfil, que fica junto à imagem
         $user->profileurl = (
             new \moodle_url('/user/view.php', array('id' => $user->id))
         )->out(false);
+        // Executa função do Moodle que traz o fullname
         $user->fullname = fullname($user);
 
+        // Atualiza o usuário em questão com os dados coletados na função
         $this->user = $user;
     }
 
+    // Organiza os dados obtidos para montar o relatório
     private function set_plans_data(renderer_base $output) {
-        // Reinicialização da variável porque export_for_template é chamado duas vezes
+        // Reinicialização da variável porque export_for_template é chamado duas vezes na mesma tela
         $this->plancategories = array();
 
         foreach ($this->plansqueryresult as $courseplan) {
             $courseplan = $this->set_plan_category($courseplan, $output);
 
+            // Atualmente não verifica a frequência para o EAD
             if ($this->plancategories[$courseplan->category2id]->distance === false) {
                 $courseplan = $this->set_attendance_data($courseplan);
             }
@@ -115,35 +130,61 @@ class plan_list implements renderable, templatable {
         }
     }
 
+    /* Usamos uma nomenclatura de variáveis que reproduz a estrutura de categorias a partir do número de 
+     * níveis de diferença em relação ao curso. Então categoryid refere-se à categoria do curso, no caso, o bloco da graduação.
+     * Já category2id refere-se à classe em que está o curso.
+     * 
+     * set_plan_category pega um curso e coloca dentro de um objeto de categoria de bloco 
+    */
     private function set_plan_category($courseplan, renderer_base $output) {
-        $categoryid = $courseplan->categoryid;
-        $category2id = $courseplan->category2id;
+        $categoryid = $courseplan->categoryid; // bloco em que está o curso
+        $category2id = $courseplan->category2id; // classe em que está o curso
 
+        // Se a classe ainda não existir, ele a cria dentro da propriedade plancategories
         if (!isset($this->plancategories[$category2id])) {
-            $this->plancategories[$category2id] = $this->create_plan_category2_object($courseplan);
+            $this->plancategories[$category2id] = $this->create_plan_category2_object($courseplan); // cria objeto da classe para usar no relatóri
         }
 
+        // Se o bloco ainda não existir, ele cria dentro da propriedade plancategories, dentro da classe de que ela faz parte
         if (!isset($this->plancategories[$category2id]->categories[$categoryid])) {
             $this->plancategories[$category2id]->categories[$categoryid] = $this->create_plan_category_object($courseplan);
         }
 
-        if (isset($courseplan->courseid)) {
-            if ($courseplan->visible == 1) {
+        // Este if parece redundante, pois não estamos usando planos atualmente
+        // Então o conteúdo do if sempre é executado
+        if (isset($courseplan->courseid)) { 
+            if ($courseplan->visible == 1) { // Verifica se o curso não está oculto
+                
+                // Trata-se de uma pasta do Moodle que tem funções de learning plans, neste caso pegando os dados de competência do Moodle
                 $coursecompetenciespage = new \tool_lp\output\course_competencies_page($courseplan->courseid);
+                // Função genérica de renderer que puxa os dados para jogar num template
                 $courseplan->coursecompetencies = $coursecompetenciespage->export_for_template($output);
+                // Função desta classe que pega as atividades associadas às competências
                 $courseplan->coursemodules = $this->get_course_competency_activities($courseplan);
             }
 
+            // Proavelmente hoje em dia isto é reduntante, mas quando usávamos planos isso fazia a correspondência entre planos e curso, que eram 1 para 1
+            // Indexcategory é a DR1, DR2 etc, para definir a ordem em que aparecem na categoria do Moodle
+            // A ordem que os cursos estão dentro da categoria é a respeitada
             $courseplan->planindexincategory = $courseplan->courseindexincategory;
+
+            // Lê a partir do SQL, advinhando a partir do nome da classe, se é a distância ou não
+            // Não está claro se no nível da categoria podemos por propriedades customizadas
+            // Existe uma tabela de propriedades customizadas, mas não sabemos se é a mesma para cursos e para usuários - achamos que não
             $courseplan->distance = $this->plancategories[$category2id]->distance;
 
+            // Chama uma função que deve gerar um array com o nome da disciplina e o id, separando/limpando a informação
+            // Gera um objeto com duas propriedades, só o id do curso e só o nome
             $coursenameidsplit = $this->get_course_name_id_split($courseplan->coursename);
+            // Aqui a gente pega só o nome sem o id em um objeto
             $courseplan->coursenamewithoutid = $coursenameidsplit->coursenamewithoutid;
+            
+            // Somente para os cursos após um certo ponto em que nós passamos a colocar o ID da disciplina no nome do curso
             if (isset($coursenameidsplit->courseidnumber)) {
+                // O getstring pega no pacote de idiomas do plugin a string "Código da disciplina" e a exibe com o código em seguida.
                 $courseplan->courseidnumber = get_string('course_id_number', 'block_lp_coursecategories') . ': ' . $coursenameidsplit->courseidnumber;
             }
         }
-
         return $courseplan;
     }
 
