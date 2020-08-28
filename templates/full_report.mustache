@@ -40,9 +40,9 @@
         </table>
     </div>
 {{/user}}
-{{#hasplans}}
+{{#hasplans}} {{! Verifica se há cursos para exibir }}
     <p class="pl-alert info">
-    {{#str}}full_report_beta_info, block_lp_coursecategories{{/str}}
+    {{#str}}full_report_beta_info, block_lp_coursecategories{{/str}} {{! Usa a função get string do Moodle }}
     </p>
     <p class="pl-alert warning">
     {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
@@ -53,18 +53,18 @@
             <a href="javascript:" class="expandall">{{#str}}expandall{{/str}}</a>
             <a href="javascript:" class="collapseall hidden">{{#str}}collapseall{{/str}}</a>
         </div>
-        {{#plancategories}}
+        {{#plancategories}} {{! Percorre os blocos }}
             <div class="lp-course-categories-full-report-category">
                 <div class="lp-course-categories-full-report-category-header">
                     <h3>
                         {{#str}}category, block_lp_coursecategories{{/str}}:
-                        {{{categoryname}}}
-                        <span class="label {{categorycompleteclass}}">{{categorycompletestring}}</span>
+                        {{{categoryname}}} {{! Com três chaves, imprime sem interpretar HTML, texto puro, é o nome do bloco }}
+                        <span class="label {{categorycompleteclass}}">{{categorycompletestring}}</span> {{! Situação do bloco }}
                     </h3>
                 </div>
 
                 <div id="collapsePlanCategory{{categoryid}}">
-                {{#plans}}
+                {{#plans}} {{! Mostra agora os cursos daquele bloco }}
                     <div class="lp-course-categories-full-report-course">
                         <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlan{{courseid}}">
                             <h4>
@@ -73,9 +73,9 @@
                                 <br />
                                 <span class="label {{coursepassedclass}}">{{coursepassedstring}}</span>
                             </h4>
-                            {{#showstatistics}}
+                            {{#showstatistics}} {{! Imprime a barra de progresso do curso com base nas competências }}
                                 {{#statistics}}
-                                {{> tool_lp/course_competency_statistics}}
+                                {{> tool_lp/course_competency_statistics}} {{! Importa um outro template Mustache }}
                                 {{/statistics}}
                             {{/showstatistics}}
                         </div>
@@ -84,19 +84,19 @@
                             <p class="lp-course-categories-full-report-category-grey">
                                 {{courseidnumber}}
                             </p>
-                            {{competenciescompletedstring}}
+                            {{competenciescompletedstring}} {{! Mostra se completou ou não o curso }}
                             <br />
-                            {{^distance}}
+                            {{^distance}} {{! Se não for a distância mostra o resultado de frequência }}
                                 {{attendancestring}}
                             {{/distance}}
-                            <!-- Competências -->
+                            <!-- Competências Loop para listar as competências de um curso -->
                             <div class="lp-course-categories-full-report-course-competencies-tree">
                                 <ul>
-                                {{#coursecompetencies}}
-                                {{#competencies}}
+                                {{#coursecompetencies}} {{! É um objeto padrão do Moodle }}
+                                {{#competencies}} {{! É um array que efetivamente tem o loop}}
                                     <li data-id="{{competency.id}}" class="clearfix">
                                         <span class="competency-name">
-                                        {{#competency}}
+                                        {{#competency}} {{! Abre o objeto competency que está dentro do loop }}
                                             <a href="{{lpbaseurl}}user_competency_in_course.php?courseid={{courseid}}&competencyid={{competency.id}}&userid={{gradableuserid}}"
                                                id="competency-info-link-{{competency.id}}"
                                                title="{{#str}}viewdetails, tool_lp{{/str}}">
@@ -106,7 +106,7 @@
                                         {{/competency}}
 
                                         <span class="competency-grade">
-                                        {{#usercompetencycourse}}
+                                        {{#usercompetencycourse}} {{! Pega o grau do aluno na competência }}
                                         {{#grade}}
                                             <span class="tag tag-info {{gradename}}">{{gradename}}</span>
                                         {{/grade}}
@@ -114,20 +114,20 @@
                                         </span>
                                     </li>
                                 {{/competencies}}
-                                {{^competencies}}
+                                {{^competencies}} {{! Trata o caso de não ter competências na disciplina }}
                                 <p class="alert alert-info">
                                     {{#str}}nocompetenciesincourse, tool_lp{{/str}}
                                 </p>
                                 {{/competencies}}
                                 {{/coursecompetencies}}
-                                {{^coursecompetencies}}
+                                {{^coursecompetencies}} {{! Trata o caso de não existir este objeto ou array de coursecompetencies }}
                                 <p class="alert alert-info">
                                     {{#str}}nocompetenciesincourse, tool_lp{{/str}}
                                 </p>
                                 {{/coursecompetencies}}
                                 </ul>
                             </div>
-                            <!-- Tarefa -->
+                            <!-- Tarefa - Link de onde a competência é avaliada -->
                             <div class="lp-course-categories-full-report-course-competencies-task">
                                 <p>Grau para fins externos: {{externalgrade}}</p>
                                 <p>
@@ -148,14 +148,14 @@
                 </div>
                 <p class="lp-course-categories-full-report-category-grey">
                     {{#str}}category2_category_description, block_lp_coursecategories{{/str}}:
-                    {{category2name}}
+                    {{category2name}} {{!! Este bloco foi cursado na classe ... }}
                 </p>
             </div>
         {{/plancategories}}
     </div>
 {{/hasplans}}
 {{^hasplans}}
-    <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>
+    <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p> {{! Quando o aluno não tem cursos, o relatório não tem dados para exibir }}
 {{/hasplans}}
 </div>
 

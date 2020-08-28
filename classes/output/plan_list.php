@@ -18,6 +18,7 @@
  * Renderable dos resultados do aluno.
  *
  * Contém a classe plan_list, que obtém os dados de competências, frequências e aproveitamento de um user
+ * Aqui calcula-se o resultado de aproveitamento em disciplinas e blocos.
  *
  * @package    block_lp_coursecategories
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
@@ -49,7 +50,7 @@ use templatable;
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-// respeita o mesmo contrato das classes renderable e templatable, logo pode ser 
+//Respeita o mesmo contrato das classes renderable e templatable, logo pode ser 
 //chamada para o renderer e templatable é que usa o mustache, podendo ser chamada por funções que esperam classes que usam o mustache
 class plan_list implements renderable, templatable { 
 
@@ -86,7 +87,7 @@ class plan_list implements renderable, templatable {
     }
 
     /**
-     * Retorna se há conteúdo na lista de planos.
+     * Retorna se há conteúdo na lista de planos, a lista de cursos (um curso corresponde um plano).
      *
      * @return boolean
      */
@@ -116,8 +117,9 @@ class plan_list implements renderable, templatable {
         // Reinicialização da variável porque export_for_template é chamado duas vezes na mesma tela
         $this->plancategories = array();
 
+        // Percorre os cursos e pega as suas categorias, define o resultado de frequência e de aproveitamento
         foreach ($this->plansqueryresult as $courseplan) {
-            $courseplan = $this->set_plan_category($courseplan, $output);
+            $courseplan = $this->set_plan_category($courseplan, $output); // prepara a estrutura
 
             // Atualmente não verifica a frequência para o EAD
             if ($this->plancategories[$courseplan->category2id]->distance === false) {
@@ -126,6 +128,7 @@ class plan_list implements renderable, templatable {
 
             $courseplan = $this->set_completed($courseplan);
 
+            // Encaixa o curso na classe e bloco, agora já com seus aproveitamentos de frequência e competências
             $this->plancategories[$courseplan->category2id]->categories[$courseplan->categoryid]->plans[] = $courseplan;
         }
     }
@@ -168,7 +171,7 @@ class plan_list implements renderable, templatable {
             // A ordem que os cursos estão dentro da categoria é a respeitada
             $courseplan->planindexincategory = $courseplan->courseindexincategory;
 
-            // Lê a partir do SQL, advinhando a partir do nome da classe, se é a distância ou não
+            // Lê a partir do SQL, advinhando a partir do nome da classe, se é a distância ou não; usado para ver se tem frequência ou não
             // Não está claro se no nível da categoria podemos por propriedades customizadas
             // Existe uma tabela de propriedades customizadas, mas não sabemos se é a mesma para cursos e para usuários - achamos que não
             $courseplan->distance = $this->plancategories[$category2id]->distance;
@@ -188,6 +191,8 @@ class plan_list implements renderable, templatable {
         return $courseplan;
     }
 
+    // A partir dos dados que estão na courseplan, que vem do SQL (que está mais abaixo neste código), pegamos do módulo de attendence do Moodle
+    // os dados de frequência da turma específica que está sendo verificada (lá em cisma esta função é chamada para todas as turmas do histórico)
     private function set_attendance_data($courseplan) {
         if (isset($courseplan->attendanceid)) {
             $attendanceid = $courseplan->attendanceid;
@@ -196,23 +201,25 @@ class plan_list implements renderable, templatable {
         }
 
         if (isset($attendancesummary)) {
-            $allsessionssummary = $attendancesummary->get_all_sessions_summary_for($this->user->id);
-            $courseplan->attendance = $this->get_attendance_percentage($allsessionssummary);
-            $courseplan->attendanceformatted = number_format($courseplan->attendance * 100, 1, ',', null) . '%';
+            $allsessionssummary = $attendancesummary->get_all_sessions_summary_for($this->user->id); // Aqui usamos uma função do Moodle, de dentro do summary
+            $courseplan->attendance = $this->get_attendance_percentage($allsessionssummary); // Uma função nossa calcula o percentual a partir do summary
+            $courseplan->attendanceformatted = number_format($courseplan->attendance * 100, 1, ',', null) . '%'; // Aqui gravamos o número formatado para exibir
         }
 
         return $courseplan;
     }
 
+    // Lê as competências a partir do SQL - elas já foram calculadas lá - e define se o aluno foi aprovado ou não na disciplina e no bloco
+    // 
     private function set_completed($courseplan) {
-        $categoryid = $courseplan->categoryid;
-        $category2id = $courseplan->category2id;
-        $competenciesok = $courseplan->competenciesok;
+        $categoryid = $courseplan->categoryid; // bloco
+        $category2id = $courseplan->category2id; // classe
+        $competenciesok = $courseplan->competenciesok; // traz do sql booleana que já diz se todas as competências do curso estão D, DL, DML
 
-        /* Course competencies string */
+        /* Course competencies string */ // Aprovado ou reprovado por aproveitamento!
         $courseplan->competenciescompletedstring = get_string('competencies_completed_' . $competenciesok, 'block_lp_coursecategories');
 
-        /* Course attendance string */
+        /* Course attendance string */ // Aprovado ou reprovado por frequência ou sem dados de frequência
         $attendanceidentifier = 'course_attendance_';
         if (
             isset($courseplan->attendancecmid)
@@ -226,17 +233,18 @@ class plan_list implements renderable, templatable {
         $courseplan->attendanceidentifier = $attendanceidentifier;
         $courseplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
 
-        /* Course passed string and class */
+        /* Course passed string and class */ // Montando o string
         $coursepassedidentifier = 'course_passed_';
 
+        // Coloca cursos ocultos ou os que vêm do SQL como em andamento como "em andamento" no relatório
         if (
             $courseplan->visible != 1
-            || $courseplan->ongoing == 1
+            || $courseplan->ongoing == 1 // No SQL define cursos como ongoing a partir da data do AT estar no futuro (possível oportunidade de melhoria)
         ) {
             $coursepassedidentifier .= 'ongoing';
-            $courseplan->coursepassedclass = '';
+            $courseplan->coursepassedclass = ''; // classe CSS para colorir os resultados na exibição - no caso ficou vazia a classe, o que deixa cinza
 
-            $courseplan->attendancestring.= ' ' . get_string('course_attendance_so_far', 'block_lp_coursecategories');
+            $courseplan->attendancestring.= ' ' . get_string('course_attendance_so_far', 'block_lp_coursecategories'); // concatena a frequência obtida na outra função com a palavra "até o momento" ou "(so far)" conforme a linguagem
         } else if (
             $competenciesok == 1
             && (
@@ -244,31 +252,35 @@ class plan_list implements renderable, templatable {
                 || $attendanceidentifier === 'course_attendance_ok'
             )
         ) {
-            $coursepassedidentifier .= 'yes';
-            $courseplan->coursepassedclass = 'D';
+            $coursepassedidentifier .= 'yes'; // concatena na string o yes para pegar a string "Aprovado"
+            $courseplan->coursepassedclass = 'D'; // coloca a classe CSS verdinha; esta classe atualmente está no nosso tema e é chamado em todas as telas
         } else if ($competenciesok == 0) {
             $coursepassedidentifier .= 'no_competencies';
         } else if ($this->plancategories[$category2id]->distance === false) {
-            if ($attendanceidentifier === 'course_attendance_no_data') {
+            if ($attendanceidentifier === 'course_attendance_no_data') { // Não tem dados de frequência (pauta Moodle ou para antigas tabela nossa importada - SQL resolve)
                 $coursepassedidentifier = $attendanceidentifier;
-                $courseplan->coursepassedclass = '';
+                $courseplan->coursepassedclass = ''; // CSS vazio, fica cinza
             } else if ($attendanceidentifier === 'course_attendance_insufficient') {
                 $coursepassedidentifier .= 'no_attendance';
             }
         }
 
+        // Armazena o valor da frequência para exibição
         if ($attendanceidentifier !== 'course_attendance_no_data') {
             $courseplan->attendancestring .= ': ' . $courseplan->attendanceformatted;
         }
 
+        // Armazena o valor da aprovação no curso
         $courseplan->coursepassedidentifier = $coursepassedidentifier;
         $courseplan->coursepassedstring = get_string($coursepassedidentifier, 'block_lp_coursecategories');
 
+        // Quando o aluno não passou, então define a classe do CSS como ND (vermelho)
         if (!isset($courseplan->coursepassedclass)) {
             $courseplan->coursepassedclass = 'ND';
         }
 
-        /* Category complete string and class */
+        /* Category complete string and class */ // Define a aprovação do aluno no bloco e a classe CSS correspondente para exibição
+        // Blocos são "não concluído" ou "concluído", não tem o "cursando"
         if ($this->plancategories[$category2id]->categories[$categoryid]->categorycomplete !== 'categoryincomplete') {
             if (
                 $this->plancategories[$category2id]->distance === false
@@ -286,6 +298,8 @@ class plan_list implements renderable, templatable {
         return $courseplan;
     }
 
+    // Calcula o percentual da frequência, usando propriedades que vieram da API do módulo de frequência do Moodle
+    // Esses dados poderiam ser trazidos direto do SQL
     private function get_attendance_percentage($allsessionssummary) {
         $numallsessions = $allsessionssummary->numallsessions;
         $sessionsbyacronym = array_pop($allsessionssummary->userstakensessionsbyacronym);
@@ -301,9 +315,11 @@ class plan_list implements renderable, templatable {
             $latesessions = $sessionsbyacronym['At'];
         }
 
+        // Este é o cálculo que nós fazemos; nós também alteramos o módulo do Moodle para calcular desta forma!
         return ($numallsessions - $absentsessions - floor($latesessions / 2)) / $numallsessions;
     }
 
+    // Calcula aqui o grau para fins externos, que é exibido junto ao relatório
     private function get_external_grade($plan) {
         if (
             $plan->coursepassedidentifier === 'course_passed_ongoing'
@@ -320,9 +336,9 @@ class plan_list implements renderable, templatable {
         $coursepassed = true;
 
         $extgradescalevalues = array(
-            '2' => 50,
-            '3' => 75,
-            '4' => 100
+            '2' => 50, // 2 é D
+            '3' => 75, // 3 é DL
+            '4' => 100 // 4 é DML
         );
 
         $competencies = $plan->coursecompetencies->competencies;
@@ -333,11 +349,11 @@ class plan_list implements renderable, templatable {
             if ($usercompetencycourse->proficiency !== '1') {
                 $coursepassed = false;
             } else {
-                $grade += $extgradescalevalues[$usercompetencycourse->grade];
+                $grade += $extgradescalevalues[$usercompetencycourse->grade]; // soma cada competência
             }
         }
 
-        $grade /= count($competencies);
+        $grade /= count($competencies); // divide pelo número, gerando a média
 
         if ($coursepassed === false) {
             $grade *= 0.4;
@@ -346,6 +362,13 @@ class plan_list implements renderable, templatable {
         return round($grade);
     }
 
+    // Aqui é o SQL que é a estrela deste relatório, trazendo dados em muitos casos já manipulados para facilitar
+    // Traz dados do cursos que o aluno cursou, dos seus resultados de competência e frequência
+    // Para um usuário traz os resultados de todos os seus cursos, um em cada linha (conforme group by)
+    // Já calcula se as competências estão ok (linha MIN(COALESCE...))
+    // Já verifica se está em andamento (se a nota for vazia e a tada mais alta de entregas e questionários forem posteriores a 10 dias atrás, é "ongoing")
+    // Essa verificação do "ongoing" poderia ser alterada para verificar também as datas de término do curso, fazendo um parêntesis antes do GREATEST
+    // Pegar o select todo, colocar no Heidi e testar lá... tem que tirar as chaves e trocar por mdl_, por exemplo {context} por mdl_context
     private function get_plan_course_categories() {
         global $DB;
 
@@ -426,20 +449,23 @@ class plan_list implements renderable, templatable {
         ", array($this->user->id));
     }
 
+    // Alimenta o objeto category2 com bloco, classe, program, escola, distância
     private function create_plan_category2_object($plancategoryrecord) {
         $category2 = new \stdClass();
 
         $category2->categoryid = $plancategoryrecord->category2id;
         $category2->categoryname = $plancategoryrecord->category2name;
-        $category2->category3name = $plancategoryrecord->category3name;
-        $category2->category4name = $plancategoryrecord->category4name;
-        $category2->distance = (preg_match('/\[GRL/', $category2->categoryname) === 1);
+        $category2->category3name = $plancategoryrecord->category3name; // Nome do Programa
+        $category2->category4name = $plancategoryrecord->category4name; // Nome da Escola
+        $category2->distance = (preg_match('/\[GRL/', $category2->categoryname) === 1); // Se o nome da classe tiver GRL, é a distância
 
         $category2->categories = array();
 
         return $category2;
     }
 
+    // Faz a mesma coisa que o anterior, mas para o bloco dentro da classe, na ordem cronológica certa, define como default que o bloco está completo
+    // Lá em cima isso é modificado quando não estiver
     private function create_plan_category_object($plancategoryrecord) {
         $category = new \stdClass();
 
@@ -456,18 +482,21 @@ class plan_list implements renderable, templatable {
         return $category;
     }
 
+    // Dentro do objeto do coursecompetencies, que vem do Moodle com o competency breakdown
+    // Aqui juntamos em um array só todas as tarefas associadas a cada competência, retornando um array só
+    // Trata casos em que há mais de uma tarefa, juntando-os em um só
     private function get_course_competency_activities($plan) {
         $coursemodules = array();
 
         foreach ($plan->coursecompetencies->competencies as $competency) {
             $coursemodules = array_map(
-                "unserialize",
-                array_unique(
+                "unserialize", // transforma de volta em objetos
+                array_unique( // para evitar duplicatas pois a mesma atividade está associada a várias disciplinas - só compara strings
                     array_map(
-                        "serialize",
+                        "serialize", // transforma um objeto em um string - os objetos dos módulos e transforma tudo em um string
                         array_merge(
                             $coursemodules,
-                            $competency['coursemodules']
+                            $competency['coursemodules'] // ATs e Questionários associados a uma competência
                         )
                     )
                 )
@@ -475,12 +504,13 @@ class plan_list implements renderable, templatable {
         }
 
         if (!empty($coursemodules)) {
-            end($coursemodules)->lastitem = true;
+            end($coursemodules)->lastitem = true; // marca qual é o último item do array, talvez usado no Mustache
         }
 
         return $coursemodules;
     }
 
+    // Ordena os cursos e as competências e coloca aqui também o string de se o bloco está concluído ou não
     private function get_exported_data() {
         $sortedcategories = array();
         foreach ($this->plancategories as $plancategory) {
@@ -489,6 +519,7 @@ class plan_list implements renderable, templatable {
             // $sortedcategories = array_values($plancategory->categories);
             // usort($sortedcategories, array($this, "compare_categories_order"));
 
+            // Entra em cada classe e vai colocando os blocos
             foreach ($plancategory->categories as $category) {
                 $category->categorycompletestring = get_string($category->categorycomplete, 'block_lp_coursecategories');
 
@@ -512,10 +543,12 @@ class plan_list implements renderable, templatable {
             // $sortedcategories2[] = $plancategory;
         }
 
+        // Ordena os blocos em ordem cronológica, depois de já estar tudo compliado em um array só
         usort($sortedcategories, array($this, "compare_categories_order"));
 
         global $USER;
 
+        // Entrega para o renderer este objeto aqui, que é repassado pelo renderer ao Mustache
         return array(
             'hasplans' => !empty($this->plansqueryresult),
             'plancategories' => $sortedcategories,
@@ -530,24 +563,24 @@ class plan_list implements renderable, templatable {
         );
     }
 
+
     private function set_user_course_competencies(renderer_base $output) {
-        foreach ($this->plancategories as $plancat2key => $plancategories2) {
-            foreach ($plancategories2->categories as $plancatkey => $plancategories) {
-                foreach ($plancategories->plans as $plankey => $plan) {
-                    if (!isset($plan->coursecompetencies)) {
+        foreach ($this->plancategories as $plancat2key => $plancategories2) { // Abre cada classe
+            foreach ($plancategories2->categories as $plancatkey => $plancategories) { // Abre cada bloco
+                foreach ($plancategories->plans as $plankey => $plan) { // Abre cada curso
+                    if (!isset($plan->coursecompetencies)) { // Verifica se tem competências no curso
                         continue;
                     }
-
-                    foreach ($plan->coursecompetencies->competencies as $compkey => $competency) {
+                    // Pega o relatório da API do Moodle a partir d ID de curso e o ID de usuário
+                    foreach ($plan->coursecompetencies->competencies as $compkey => $competency) { // Laço com as competências do curso
                         $competencyreport = new \report_competency\output\report($competency['coursecompetency']->courseid, $this->user->id);
                         $exportedusercompetencycourse = $competencyreport->export_for_template($output);
 
-                        foreach ($exportedusercompetencycourse->usercompetencies as $usercompetency) {
+                        foreach ($exportedusercompetencycourse->usercompetencies as $usercompetency) { // Para cada resultado de competência alimenta com o resultado da competência
                             if ($usercompetency->usercompetencycourse->competencyid === $competency['competency']->id) {
-                                $this->plancategories[$plancat2key]->categories[$plancatkey]->plans[$plankey]->coursecompetencies->competencies[$compkey]['usercompetencycourse'] = $usercompetency->usercompetencycourse;
-                                $this->plancategories[$plancat2key]->categories[$plancatkey]->plans[$plankey]->coursecompetencies->competencies[$compkey]['gradableuserid'] = $this->user->id;
-
-                                break;
+                                $this->plancategories[$plancat2key]->categories[$plancatkey]->plans[$plankey]->coursecompetencies->competencies[$compkey]['usercompetencycourse'] = $usercompetency->usercompetencycourse; // Alimenta com o resultado
+                                $this->plancategories[$plancat2key]->categories[$plancatkey]->plans[$plankey]->coursecompetencies->competencies[$compkey]['gradableuserid'] = $this->user->id; // A barra de % deve usar isso?
+                                break; // A gente para de olhar quando tiver encontrado no relatório do Moodle o resultado da competência que queríamos
                             }
                         }
                     }
@@ -558,6 +591,7 @@ class plan_list implements renderable, templatable {
         }
     }
 
+    // Ajeita o nome do curso, retirando o colchete do código da disciplina e separando
     private function get_course_name_id_split($coursename) {
         preg_match('/^\[([^\s]+)\] (.*)/', $coursename, $regexresult);
 
@@ -573,6 +607,7 @@ class plan_list implements renderable, templatable {
         return $coursenameidsplit;
     }
 
+    // Pega o trimestre do bloco a partir do nome do bloco, que tem o trimestre em colchetes
     private function compare_categories_order($category1, $category2) {
         preg_match('/\[(\d\d)E(\d)/', $category1->categoryname, $cat1firsttrimester);
         preg_match('/\[(\d\d)E(\d)/', $category2->categoryname, $cat2firsttrimester);
@@ -596,13 +631,16 @@ class plan_list implements renderable, templatable {
         return ($category1->categoryorder < $category2->categoryorder) ? -1 : 1;
     }
 
+    // Utiliza a ordem das disciplinas dentro do bloco para ordená-las
+    // planindexcategory vem do SQL
     private function compare_courses_order($course1, $course2) {
         if ($course1->planindexincategory === $course2->planindexincategory) {
             return 0;
         }
-        return ($course1->planindexincategory < $course2->planindexincategory) ? -1 : 1;
+        return ($course1->planindexincategory < $course2->planindexincategory) ? -1 : 1; // Aqui ordena!
     }
 
+    // Agora ordena as competências pelo seu número
     private function compare_competencies_idnumber($competency1, $competency2) {
         if ($competency1['competency']->idnumber === $competency2['competency']->idnumber) {
             return 0;
@@ -610,6 +648,7 @@ class plan_list implements renderable, templatable {
         return ($competency1['competency']->idnumber < $competency2['competency']->idnumber) ? -1 : 1;
     }
 
+    // Formata do CPF do aluno para exibir
     private function format_cpf($cpf) {
         return substr($cpf, 0, 3) . '.' .
             substr($cpf, 3, 3) . '.' .

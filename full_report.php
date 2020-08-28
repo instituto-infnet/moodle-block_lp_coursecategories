@@ -62,7 +62,7 @@ if ($params['userid'] !== $loggeduserid && has_capability('moodle/competency:com
 // Cabeçalho com o nome do usuário, que aparece lá no alto
 $header = fullname($user);
 
-// Define o título da aba
+// Define o título da aba, pegando da "biblioteca" de strings da linguagem que o usuário estiver usando, conforme definido na pasta "lang".
 $title = get_string('full_report', 'block_lp_coursecategories');
 
 $PAGE->set_title($title); // Define o título da aba
