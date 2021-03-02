@@ -346,7 +346,10 @@ class plan_list implements renderable, templatable {
                     and r.archetype = 'student'
                 join {course_categories} cc on cc.id = c.category
                 join {course_categories} cc2 on cc2.id = cc.parent
-                    and cc2.name like '[GR%'
+                    and (
+                        cc2.name like '[GR%'
+                        or cc2.name like '[PG%'
+                    )
                 join {course_categories} cc3 on cc3.id = cc2.parent
                 join {course_categories} cc4 on cc4.id = cc3.parent
                 left join {competency_coursecomp} ccc on ccc.courseid = c.id
