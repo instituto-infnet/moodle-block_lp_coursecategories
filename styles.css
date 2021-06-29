@@ -1,0 +1,233 @@
+.block_lp_coursecategories .sub-content {
+    padding: 0 15px;
+}
+
+.block_lp_coursecategories .report-header {
+    text-align: center;
+}
+
+.block_lp_coursecategories a[data-toggle=collapse] {
+    color: inherit;
+}
+
+.block_lp_coursecategories a[data-toggle=collapse]:hover, .block_lp_coursecategories a[data-toggle=collapse]:focus {
+    text-decoration: inherit;
+}
+
+.lp-course-categories-warp {
+    margin-top: 32px;
+}
+
+.lp-course-categories-full-report-category {
+    padding: 24px 16px;
+    border-radius: 2px;
+    background: #fff;
+    box-shadow: 0 10px 20px rgba(0,0,0,.19), 0 6px 6px rgba(0,0,0,.23);
+    margin-bottom: 24px;
+    margin-top: 8px;
+    border-top: 5px solid #2ABFD4;
+}
+
+.lp-course-categories-full-report-category .profile-info {
+    width: auto;
+}
+
+.lp-course-categories-full-report-category .profile-info td {
+    padding-right: 50px;
+}
+
+.lp-course-categories-full-report-category td.profile-info-label {
+    font-weight: bold;
+    padding-right: 5px;
+}
+
+.lp-course-categories-full-report-category-grey {
+    text-align: right;
+    color: #999;
+}
+
+.lp-course-categories-full-report-course {
+    margin-left: 16px;
+    margin-bottom: 24px;
+}
+
+.lp-course-categories-full-report-course-header {
+    cursor: pointer;
+}
+
+.lp-course-categories-warp h2 {
+    font-weight: bold;
+}
+
+.lp-course-categories-full-report-category-header h3 {
+    margin: 0;
+}
+
+.lp-course-categories-full-report-course-header h4 {
+    color: rgba(0, 0, 0, .70);
+}
+
+.lp-course-categories-full-report-category-header h3,
+.lp-course-categories-full-report-course-header h4,
+.block_lp_coursecategories .plancategory{
+    display: block;
+}
+
+.lp-course-categories-full-report-course-header h4:hover {
+    color: #089CA8;
+}
+
+.block_lp_coursecategories .collapsible-actions {
+    padding: 0 16px;
+}
+
+.lp-course-categories-full-report-course-header h4,
+.block_lp_coursecategories .collapsible-actions .collapseall,
+.block_lp_coursecategories .collapsible-actions .expandall {
+    padding-left: 20px;
+    background: url([[pix:t/expanded]]) left center no-repeat;
+}
+
+.lp-course-categories-full-report-course-header.collapsed h4,
+.block_lp_coursecategories .collapsible-actions .expandall {
+    background-image: url([[pix:t/collapsed]]);
+}
+
+.lp-course-categories-full-report-course-header .well {
+    padding: 16px;
+    margin-left: 16px;
+}
+
+.lp-course-categories-full-report-course-header .well,
+.lp-course-categories-full-report-course-header div.span8 .progress {
+    margin-bottom: 0;
+}
+
+.lp-course-categories-full-report-course-header div.span4 {
+    text-align: right;
+    width: 23.623932%;
+}
+
+.lp-course-categories-full-report-course-header div.span8 {
+    width: 72.376068%;
+}
+
+.lp-course-categories-full-report-course-header .progresstext {
+    font-size: 12px;
+}
+
+.lp-course-categories-full-report-course-header .progress {
+    margin-top: 10px;
+}
+
+.lp-course-categories-full-report-course-header .progress .bar {
+    color: #000;
+}
+
+.lp-course-categories-full-report-category-header .progress .bar[aria-valuenow="100"] {
+    background-image: -moz-linear-gradient(top, #62c462, #57a957);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62c462), to(#57a957));
+    background-image: -webkit-linear-gradient(top, #62c462, #57a957);
+    background-image: -o-linear-gradient(top, #62c462, #57a957);
+    background-image: linear-gradient(to bottom, #62c462, #57a957);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff62c462', endColorstr='#ff57a957', GradientType=0);
+}
+
+.lp-course-categories-full-report-category-header .label,
+.lp-course-categories-full-report-course-header .label {
+    font-size: 16px;
+    padding: 6px 8px;
+}
+
+.lp-course-categories-full-report-course-competencies {
+    margin-left: 16px;
+}
+
+.lp-course-categories-full-report-course-competencies-tree {
+    border-left: 1px dotted #90A4AE;
+    padding: 16px 16px 16px 8px;
+    margin-top: 8px;
+    margin-left: 8px;
+}
+
+.lp-course-categories-full-report-course-competencies-task {
+    padding: 8px 16px;
+    text-align: right;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul {
+    list-style: none;
+    margin: 0;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li {
+    padding: 8px;
+    font-weight: 300;
+    border-bottom: 1px solid #CFD8DC;
+    margin-left: 8px;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:last-child {
+    border-bottom: none;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:hover {
+    background-color: #ECEFF1;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:before {
+    font-family: FontAwesome;
+    content: "\f111";
+    color: #90A4AE;
+    float: left;
+    margin-left: -30px;
+    margin-top: 10px;
+}
+
+.lp-course-categories-full-report-course-competencies-tree ul li:hover:before {
+    color: #FF9800;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-name {
+    font-weight: 400;
+    display: inline-block;
+    width: 90%;
+}
+
+.lp-course-categories-full-report-course-competencies-tree .competency-grade {
+    float: right;
+}
+
+.lp-course-categories-full-report-course-competencies table {
+    margin-bottom: 5px;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-row td {
+    vertical-align: middle;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-grade {
+    text-align: right;
+}
+
+.lp-course-categories-full-report-course-competencies .competency-grade p {
+    margin: 0;
+}
+
+@media print {
+    .lp-course-categories-full-report-course-competencies {
+        height: auto !important;
+    }
+
+    #page-blocks-lp_coursecategories-full_report #block-region-side-pre,
+    #page-blocks-lp_coursecategories-full_report header,
+    #page-blocks-lp_coursecategories-full_report footer {
+        display: none;
+    }
+}
+
+
+/* hack para esta tela */
+.block_lp_coursecategories .pl-alert {
+    margin: 16px 0;
+}
