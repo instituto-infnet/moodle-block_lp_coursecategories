@@ -136,12 +136,6 @@ class plan_list implements renderable, templatable {
 
             $courseplan->planindexincategory = $courseplan->courseindexincategory;
             $courseplan->distance = $this->plancategories[$category2id]->distance;
-
-            $coursenameidsplit = $this->get_course_name_id_split($courseplan->coursename);
-            $courseplan->coursenamewithoutid = $coursenameidsplit->coursenamewithoutid;
-            if (isset($coursenameidsplit->courseidnumber)) {
-                $courseplan->courseidnumber = get_string('course_id_number', 'block_lp_coursecategories') . ': ' . $coursenameidsplit->courseidnumber;
-            }
         }
 
         return $courseplan;
@@ -312,6 +306,7 @@ class plan_list implements renderable, templatable {
 
         return $DB->get_records_sql("
             select c.id courseid,
+                c.shortname courseidnumber,
                 c.fullname coursename,
                 c.sortorder coursesortorder,
                 c.visible,
@@ -524,21 +519,6 @@ class plan_list implements renderable, templatable {
                 }
             }
         }
-    }
-
-    private function get_course_name_id_split($coursename) {
-        preg_match('/^\[([^\s]+)\] (.*)/', $coursename, $regexresult);
-
-        $coursenameidsplit = new \stdClass();
-
-        if (!empty($regexresult)) {
-            $coursenameidsplit->courseidnumber = $regexresult[1];
-            $coursenameidsplit->coursenamewithoutid = $regexresult[2];
-        } else {
-            $coursenameidsplit->coursenamewithoutid = $coursename;
-        }
-
-        return $coursenameidsplit;
     }
 
     private function compare_categories_order($category1, $category2) {

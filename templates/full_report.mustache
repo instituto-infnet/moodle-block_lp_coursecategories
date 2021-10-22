@@ -62,7 +62,7 @@
                         <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlan{{courseid}}">
                             <h4>
                                 {{#str}}course, block_lp_coursecategories{{/str}}
-                                {{planindexincategory}}: {{{coursenamewithoutid}}}
+                                {{planindexincategory}}: {{{coursename}}}
                                 <br />
                                 <span class="label {{coursepassedclass}}">{{coursepassedstring}}</span>
                             </h4>
@@ -75,7 +75,7 @@
 
                         <div id="collapsePlan{{courseid}}" class="lp-course-categories-full-report-course-competencies collapse">
                             <p class="lp-course-categories-full-report-category-grey">
-                                {{courseidnumber}}
+                                {{#str}} course_id_number, block_lp_coursecategories {{/str}}: {{courseidnumber}}
                             </p>
                             {{competenciescompletedstring}}
                             <br />
