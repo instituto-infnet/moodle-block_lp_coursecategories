@@ -396,7 +396,8 @@ class plan_list implements renderable, templatable {
         $category2->categoryname = $plancategoryrecord->category2name;
         $category2->category3name = $plancategoryrecord->category3name;
         $category2->category4name = $plancategoryrecord->category4name;
-        $category2->distance = (preg_match('/\[GRL/', $category2->categoryname) === 1);
+        $category2->distance = (preg_match('/\[GRL/', $category2->categoryname) === 1)
+            || (preg_match('/\[PGL/', $category2->categoryname) === 1);
 
         $category2->categories = array();
 
