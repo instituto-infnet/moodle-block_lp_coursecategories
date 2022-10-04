@@ -57,4 +57,14 @@ class renderer extends plugin_renderer_base {
         $data = $planlist->export_for_template($this);
         return parent::render_from_template('block_lp_coursecategories/full_report', $data);
     }
+
+    /**
+     * Delegar ao template, versão para o RCA.
+     * @param renderable $planlist
+     * @return string
+     */
+    public function render_full_report_rca(plan_list $planlist) {
+        $data = $planlist->export_for_template($this);
+        return parent::render_from_template('block_lp_coursecategories/full_report_rca', $data);
+    }
 }
