@@ -157,6 +157,45 @@ class plan_list implements renderable, templatable {
         return $courseplan;
     }
 
+    private function check_plagiarism($courseid, $userid){
+        global $DB;
+        
+        $assign_sql = "SELECT id, course, name FROM {assign} where course = :courseid AND name like 'assessment%'";
+        // Bind the parameters for the SQL query
+        $params = array('courseid' => $courseid);
+
+        // Fetch the data using get_records_sql
+        $assign_data = $DB->get_records_sql($assign_sql, $params);
+        $assign = array_values($assign_data);
+        
+        $sql = "SELECT
+            u.firstname,
+            u.lastname,
+            ag.grade,
+            grc.id AS rubric_id,
+            grc.description AS rubric_description,
+            gfl.remark,
+            gfl.levelid AS rate_id,
+            gfrl.definition AS rate_definition,
+            gfrl.score AS rate_score
+        FROM {assign_submission} AS asb
+        JOIN {user} AS u ON u.id = asb.userid
+        JOIN {assign_grades} AS ag ON ag.userid = asb.userid AND ag.assignment = asb.assignment
+        JOIN {grading_instances} AS gi ON gi.itemid = ag.id
+        JOIN {gradingform_rubric_fillings} AS gfl ON gfl.instanceid = gi.id
+        JOIN {gradingform_rubric_criteria} AS grc ON grc.id = gfl.criterionid
+        JOIN {gradingform_rubric_levels} AS gfrl ON gfrl.id = gfl.levelid
+        WHERE asb.assignment = :assignmentid AND u.id = :userid AND asb.status = 'submitted' AND gi.definitionid = asb.assignment AND gi.status = 0";
+
+        // Bind the parameters for the SQL query
+        $params = array('assignmentid' => $assign[0]->id, 'userid' => $userid);
+        
+        // Fetch the data using get_records_sql
+        $data = $DB->get_records_sql($sql, $params);
+        
+        return $data['Aluno'];
+    }
+
     private function set_completed($courseplan) {
         $categoryid = $courseplan->categoryid;
         $category2id = $courseplan->category2id;
@@ -238,6 +277,19 @@ class plan_list implements renderable, templatable {
             }
         }
 
+        // Faz checagem se o AT do aluno está marcado como plágio
+        $plagiarism = $this->check_plagiarism($courseplan->courseid, $courseplan->coursecompetencies->gradableuserid);
+        $rubric_plagiarism = get_string('rubric_plagiarism', 'block_lp_coursecategories');
+        
+        if(intval($plagiarism->rate_score) === 0 && $plagiarism->rubric_description === $rubric_plagiarism){            
+            // $courseplan->competenciescompletedstring = get_string('competencies_plagiarism', 'block_lp_coursecategories');
+            $courseplan->coursepassedclass = 'ND';
+            $courseplan->coursepassedidentifier = 'course_passed_plagiarism';
+            $courseplan->coursepassedstring = get_string('course_passed_plagiarism', 'block_lp_coursecategories');
+            $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = 'categoryincomplete';
+            $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = 'ND';
+        }
+        
         return $courseplan;
     }
 
