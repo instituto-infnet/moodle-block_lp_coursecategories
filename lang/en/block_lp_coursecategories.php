@@ -55,3 +55,11 @@ $string['full_report_warning'] = 'List of courses and categories available for c
 $string['pluginname'] = 'Learning plans per course category';
 $string['profile_info_title'] = 'Student info';
 $string['sem_planos'] = 'You don\'t have any learning plans';
+
+// CURSOS DE EXTENSÃO
+$string['ext_title'] = 'Hours of Activities of Extension';
+$string['status'] = 'Status';
+$string['data'] = 'Data';
+$string['effective_hours'] = 'Effective Hours';
+$string['total_hours'] = 'Total Hours';
+$string['hours'] = 'hours';

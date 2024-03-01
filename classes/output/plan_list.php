@@ -49,6 +49,8 @@ class plan_list implements renderable, templatable {
 
     /** @var array Resultado da consulta ao banco com dados dos planos. */
     protected $plansqueryresult = array();
+    /** @var array Resultado da consulta ao banco com dados dos planos dos cursos de extensão. */
+    protected $extensionplansqueryresult = array();
     /** @var array Categorias dos cursos dos planos. */
     protected $plancategories = array();
     /** @var stdClass O usuário. */
@@ -67,6 +69,9 @@ class plan_list implements renderable, templatable {
 
         // Obter as categorias de cursos de cada plano.
         $this->plansqueryresult = $this->get_plan_course_categories($user->id);
+          
+        // Obter as categorias de cursos de cada plano.
+        $this->extensionplansqueryresult = $this->get_plan_extension_course_categories();
     }
 
     public function export_for_template(renderer_base $output) {
@@ -353,6 +358,63 @@ class plan_list implements renderable, templatable {
         return round($grade);
     }
 
+    private function get_plan_extension_course_categories() {
+        global $DB;        
+        
+        $sql = "SELECT 
+                    c.id AS courseid,
+                    c.shortname AS courseidnumber,
+                    c.fullname AS coursename,
+                    c.sortorder AS coursesortorder,
+                    c.visible,
+                    DATE_FORMAT(FROM_UNIXTIME(c.startdate), '%d-%m-%Y') AS course_start_date,
+                    DATE_FORMAT(FROM_UNIXTIME(c.enddate), '%d-%m-%Y') AS course_end_date,
+                    CONCAT(YEAR(FROM_UNIXTIME(c.startdate)), '.', 
+                        CASE 
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 1 AND 3 THEN '1T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 4 AND 6 THEN '2T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 7 AND 9 THEN '3T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 10 AND 12 THEN '4T'
+                        END) AS Trimester,
+                    cc.id AS categoryid,
+                    cc.name AS categoryname,
+                    cc.sortorder AS categorysortorder,
+                    cc2.id AS category2id,
+                    cc2.name AS category2name,
+                    cc2.description AS category2description,
+                    cc3.id AS category3id,
+                    cc3.name AS category3name,
+                    cc4.id AS category4id,
+                    cc4.name AS category4name    
+                FROM 
+                    mdl_course c
+                JOIN 
+                    mdl_context cx ON cx.instanceid = c.id
+                    AND cx.contextlevel = '50'
+                JOIN 
+                    mdl_role_assignments ra ON ra.contextid = cx.id
+                JOIN 
+                    mdl_role r ON r.id = ra.roleid
+                    AND r.archetype = 'student'
+                JOIN 
+                    mdl_course_categories cc ON cc.id = c.category
+                JOIN 
+                    mdl_course_categories cc2 ON cc2.id = cc.parent
+                    AND cc2.name LIKE '[EX%'
+                JOIN 
+                    mdl_course_categories cc3 ON cc3.id = cc2.parent
+                JOIN 
+                    mdl_course_categories cc4 ON cc4.id = cc3.parent      
+                WHERE 
+                    ra.userid = ?
+                    AND c.fullname NOT LIKE '%Projeto de Bloco I %'
+                GROUP BY 
+                    c.id;
+        ";
+        // var_dump($DB->get_records_sql($sql, array($this->user->id)));exit();
+        return($DB->get_records_sql($sql, array($this->user->id)));
+    }    
+
     private function get_plan_course_categories() {
         global $DB;
 
@@ -496,6 +558,57 @@ class plan_list implements renderable, templatable {
 
         return $coursemodules;
     }
+    
+    private function get_course_grades($coursesdata){
+        global $DB;        
+        
+        foreach($coursesdata as $course){
+            $sql = "SELECT 
+                        gi.courseid,
+                        gi.itemname,
+                        gi.itemtype,
+                        gg.itemid,
+                        gg.userid,
+                        gg.finalgrade
+                        FROM `mdl_grade_items` gi 
+                        LEFT JOIN `mdl_grade_grades` gg ON gi.id = gg.itemid 
+                        WHERE (gi.courseid = ? AND gi.itemtype = 'course') 
+                        AND gg.userid = ?; 
+            ";
+            $result = reset($DB->get_records_sql($sql, array($course->courseid,$this->user->id)));
+            
+            // Define e acrescenta o status do curso 
+            $currentDate = new \DateTime();            
+            $start_date = \DateTime::createFromFormat('d-m-Y', $course->course_start_date);
+            $end_date = \DateTime::createFromFormat('d-m-Y', $course->course_end_date);
+            
+            if ($currentDate >= $start_date && $currentDate <= $end_date) {
+                $status = "Cursando";
+                $statusbadge = "blue";
+            } elseif ($currentDate < $start_date) {
+                $status = "Não iniciado";
+                $statusbadge = "blue";
+            } else {
+                $status = "Encerrado";
+                $statusbadge = "green";
+            }
+            $course->status = $status;
+            $course->statusbadge = $statusbadge;
+
+            // Acrescenta o total de horas lançado do curso            
+            $course->finalgrade = $result->finalgrade ? intval(floatval($result->finalgrade)) . 'h': '-';
+        }
+        // var_dump($coursesdata);exit();
+        return $coursesdata;
+    }
+    
+    private function sum_extension_hours($coursesdata){         
+        $total = 0;
+        foreach($coursesdata as $course){                       
+            $total += $course->finalgrade !== '-'? $course->finalgrade: 0;
+        }        
+        return $total;
+    }
 
     private function get_exported_data() {
         $sortedcategories = array();
@@ -532,8 +645,16 @@ class plan_list implements renderable, templatable {
 
         global $USER;
 
+        $extension_plans = array_values($this->extensionplansqueryresult);
+        $extension_plans_final = $this->get_course_grades($extension_plans);
+        $extension_total_hours = $this->sum_extension_hours($extension_plans_final);
+
         return array(
             'hasplans' => !empty($this->plansqueryresult),
+            'hasextensionplans' => !empty($extension_plans),            
+            'extensionplans' => $extension_plans_final,
+            'description' => $extension_plans_final[0]->category2description,
+            'extensiontotalhours' => $extension_total_hours,
             'plancategories' => $sortedcategories,
             'user' => $this->user,
             'cpf' => $this->format_cpf($this->user->profile_field_matricula),

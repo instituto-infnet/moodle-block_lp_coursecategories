@@ -55,3 +55,11 @@ $string['full_report_warning'] = 'Extrato de blocos, disciplinas e competências
 $string['pluginname'] = 'Meu histórico';
 $string['profile_info_title'] = 'Dados cadastrais';
 $string['sem_planos'] = 'Você não possui planos de aprendizado';
+
+// CURSOS DE EXTENSÃO
+$string['ext_title'] = 'Horas de Atividades de Extensão';
+$string['status'] = 'Status';
+$string['data'] = 'Data';
+$string['effective_hours'] = 'Horas Efetivas';
+$string['total_hours'] = 'Total de Horas';
+$string['hours'] = 'horas';
