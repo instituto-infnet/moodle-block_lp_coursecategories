@@ -58,8 +58,12 @@ $string['sem_planos'] = 'Você não possui planos de aprendizado';
 
 // CURSOS DE EXTENSÃO
 $string['ext_title'] = 'Horas de Atividades de Extensão';
+$string['ele_title'] = 'Disciplinas Eletivas';
 $string['status'] = 'Status';
 $string['data'] = 'Data';
 $string['effective_hours'] = 'Horas Efetivas';
 $string['total_hours'] = 'Total de Horas';
 $string['hours'] = 'horas';
+
+// CURSOS ELETIVOS
+$string['credit_hours'] = 'Carga Horária';
