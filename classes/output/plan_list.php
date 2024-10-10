@@ -75,7 +75,7 @@ class plan_list implements renderable, templatable {
         $this->extensionplansqueryresult = $this->get_plan_extension_course_categories();
         
         // Obter as categorias de cursos eletivos de cada plano.
-        $this->electiveplansqueryresult = $this->get_plan_elective_course_categories();
+        $this->electiveplansqueryresult = $this->get_plan_elective_course_categories();        
     }
 
     public function export_for_template(renderer_base $output) {
@@ -398,8 +398,10 @@ class plan_list implements renderable, templatable {
                 JOIN 
                     mdl_course_categories cc ON cc.id = c.category
                 JOIN 
-                    mdl_course_categories cc2 ON cc2.id = cc.parent
-                    AND cc2.name = 'Eletivas'
+                    mdl_course_categories cc2 ON cc2.id = cc.parent                
+                JOIN 
+                    mdl_course_categories cc3 ON cc3.id = cc2.parent
+                    AND cc3.name = 'Eletivas'
                 JOIN 
                     mdl_customfield_data cfd ON cfd.instanceid = c.id
                 JOIN 
@@ -411,7 +413,7 @@ class plan_list implements renderable, templatable {
                 GROUP BY 
                     c.id, cfd.value;
         ";
-        // var_dump($DB->get_records_sql($sql, array($this->user->id)));exit();
+        
         return($DB->get_records_sql($sql, array($this->user->id)));
     }    
     
@@ -468,7 +470,7 @@ class plan_list implements renderable, templatable {
                 GROUP BY 
                     c.id;
         ";
-        // var_dump($DB->get_records_sql($sql, array($this->user->id)));exit();
+        
         return($DB->get_records_sql($sql, array($this->user->id)));
     }    
 
@@ -655,7 +657,7 @@ class plan_list implements renderable, templatable {
             // Acrescenta o total de horas lançado do curso            
             $course->finalgrade = $result->finalgrade ? intval(floatval($result->finalgrade)) . 'h': '-';
         }
-        // var_dump($coursesdata);exit();
+        
         return $coursesdata;
     }
     
@@ -709,7 +711,7 @@ class plan_list implements renderable, templatable {
             $course->status = $status;
             $course->statusbadge = $statusbadge;           
         }
-        //var_dump($coursesdata);exit();
+        
         return $coursesdata;
     }
     
@@ -762,10 +764,10 @@ class plan_list implements renderable, templatable {
         $extension_total_hours = $this->sum_extension_hours($extension_plans_final);
         
         // Elective Course
-        $elective_plans = array_values($this->electiveplansqueryresult);
+        $elective_plans = array_values($this->electiveplansqueryresult);        
         $elective_plans_final = $this->get_elective_course_grades($elective_plans);
         $elective_total_hours = $this->sum_extension_hours($elective_plans_final);        
-        //var_dump($elective_plans, $elective_plans_final);exit();
+        
         
         return array(
             'hasplans' => !empty($this->plansqueryresult),
