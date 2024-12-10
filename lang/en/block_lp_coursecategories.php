@@ -60,10 +60,13 @@ $string['sem_planos'] = 'You don\'t have any learning plans';
 $string['ext_title'] = 'Hours of Activities of Extension';
 $string['ele_title'] = 'Elective Courses';
 $string['status'] = 'Status';
-$string['data'] = 'Data';
+$string['data'] = 'Trimester';
 $string['effective_hours'] = 'Effective Hours';
 $string['total_hours'] = 'Total Hours';
 $string['hours'] = 'hours';
 
 // CURSOS ELETIVOS
 $string['credit_hours'] = 'Credit Hours';
+
+// REAVALIAÇÃO DE DISCIPLINAS
+$string['at_title'] = 'Reassessment of Disciplines';

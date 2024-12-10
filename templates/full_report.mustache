@@ -147,6 +147,294 @@
     </div>           
 {{/hasplans}}
 
+{{#haselectiveplans}}
+    <style>
+        .container-table{
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right{
+            text-align: right;
+            padding-right: 20px;
+            margin-top: 30px;
+        }
+
+        .opacity {
+            opacity: 0.7;
+        }
+
+        .inline {
+            display: inline !important;
+        }
+
+        .badge-green {
+            background-color: #8BC34A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-blue {
+            background-color: #003F7A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-red {
+            background-color: #FF0000;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+    </style>    
+    <div class="lp-course-categories-warp">
+        <div class="lp-course-categories-full-report-category">
+            <div class="lp-course-categories-full-report-category-header">
+                <h3 class="inline">
+                    {{#str}}ele_title, block_lp_coursecategories{{/str}}                                      
+                </h3>                 
+            </div>
+            <div class="container-table">
+                <table>
+                    <tr>
+                        <th></th>
+                        <th class="center">
+                            {{#str}}status, block_lp_coursecategories{{/str}}
+                        </th>
+                        <th class="center">
+                            {{#str}}data, block_lp_coursecategories{{/str}}
+                        </th>
+                        <th class="center">
+                            {{#str}}credit_hours, block_lp_coursecategories{{/str}}
+                        </th>
+                    </tr>
+                    {{#electiveplans}}
+                        <tr>
+                            <td>
+                                <h4 class="opacity">{{coursename}}</h4>
+                            </td>
+                            <td class="center">
+                                <span class="badge-{{statusbadge}}">{{status}}</span>
+                            </td>
+                            <td class="center">{{trimester}}</td>
+                            <td class="center">
+                                <b>{{finalgrade}}</b>
+                            </td>
+                        </tr>
+                    {{/electiveplans}}                     
+                </table>    
+                {{#electivetotalhours}}
+                    <h3 class="right">                        
+                        {{#str}}total_hours, block_lp_coursecategories{{/str}}: {{electivetotalhours}} {{#str}}hours, block_lp_coursecategories{{/str}}.
+                    </h3>                    
+                {{/electivetotalhours}} 
+            </div>
+        </div>
+    </div>    
+{{/haselectiveplans}}
+
+{{#hasreassessmentplans}}
+    <style>
+        .container-table{
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right{
+            text-align: right;
+            padding-right: 20px;
+            margin-top: 30px;
+        }
+
+        .opacity {
+            opacity: 0.7;
+        }
+
+        .inline {
+            display: inline !important;
+        }
+
+        .badge-green {
+            background-color: #8BC34A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-blue {
+            background-color: #003F7A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-red {
+            background-color: #FF0000;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .course-title {
+            display: flex;
+            align-items: center; /* Vertically center the items */
+            margin-bottom: 5px;  /* Adjust spacing as needed */
+        }
+        .coursename {
+            font-size: 1.2em; 
+        }
+
+        /* Styles for the collapsible arrow */
+        .toggle-arrow {
+            cursor: pointer;
+            display: inline-flex;
+            margin-right: 5px;
+            transition: transform 0.3s ease;            
+        }
+
+        /* Rotate the arrow when active */
+        .toggle-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        /* Hide the competencies by default */
+        .competency-container {
+            display: none;
+            overflow: hidden;
+        }
+
+        /* Animation class */
+        .competency-container.animate {
+            transition: max-height 0.3s ease;
+        }
+
+        /* Adjust the table inside the competencies */
+        .competency-table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+
+        .competency-table td {
+            padding: 4px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .competency-table td.right {
+            text-align: right;
+        }
+
+        .badge-grade {
+            display: inline-block;
+            padding: 2px 6px;
+            background-color: #f0f0f0; /* Adjust color as needed */
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>    
+    <div class="lp-course-categories-warp">
+        <div class="lp-course-categories-full-report-category">
+            <div class="lp-course-categories-full-report-category-header">
+                <h3 class="inline">
+                    {{#str}}at_title, block_lp_coursecategories{{/str}}                                      
+                </h3>                 
+            </div>
+            <div class="container-table"> 
+                <table>
+                    <tr>
+                        <th></th>
+                        <th class="center">
+                            {{#str}}status, block_lp_coursecategories{{/str}}
+                        </th>
+                        <th class="center">
+                            {{#str}}data, block_lp_coursecategories{{/str}}
+                        </th>                        
+                    </tr>
+                    {{#reassessment_plans_final}}
+                        <tr>
+                            <td>
+                               <div class="course-title">
+                                    <span class="toggle-arrow" data-target="competencies-{{courseid}}">
+                                        <i class="icon fa fa-chevron-right" aria-hidden="true"></i>
+                                    </span>
+                                    <span class="coursename">{{coursename}}</span>
+                                </div>
+                                <div id="competencies-{{courseid}}" class="competency-container">
+                                    <span style="color: #999;">Código da disciplina: {{courseidnumber}}</span>
+                                    <table class="competency-table">
+                                        {{#currentgrades}}
+                                        <tr>
+                                            <td>{{competencyname}}</td>
+                                            <td class="right">
+                                                <span class="badge-{{gradebadge}}">{{gradename}}</span>
+                                            </td>
+                                        </tr>
+                                        {{/currentgrades}}
+                                    </table>
+                                    {{#assessment_assign}}
+                                        <div style="margin-top:20px;">
+                                            <span class="fa fa-info-circle" aria-hidden="true"></span>
+                                            As competências desta disciplina são avaliadas em
+                                            <a href="{{url}}" target="_blank" class="competency_activities_avaliable">{{assignname}}</a>
+                                        </div>
+                                    {{/assessment_assign}}
+                                </div>
+                            </td>
+                            <td class="center">
+                                <span class="badge-{{statusbadge}}">{{status}}</span>
+                            </td>
+                            <td class="center">{{trimester}}</td>                            
+                        </tr>
+                    {{/reassessment_plans_final}}                     
+                </table>    
+                {{#extensiontotalhours}}
+                    <h3 class="right">                        
+                        {{#str}}course_id_number, block_lp_coursecategories{{/str}}: {{extensiontotalhours}}.
+                    </h3>                    
+                {{/extensiontotalhours}} 
+            </div>
+        </div>
+    </div>    
+{{/hasreassessmentplans}}
+
 {{#hasextensionplans}}
     <style>
         .container-table{
@@ -254,112 +542,6 @@
     </div>    
 {{/hasextensionplans}}
 
-{{#haselectiveplans}}
-    <style>
-        .container-table{
-            margin-left: 20px;
-            margin-right: 20px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .center {
-            text-align: center;
-        }
-
-        .right{
-            text-align: right;
-            padding-right: 20px;
-            margin-top: 30px;
-        }
-
-        .opacity {
-            opacity: 0.7;
-        }
-
-        .inline {
-            display: inline !important;
-        }
-
-        .badge-green {
-            background-color: #8BC34A;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-
-        .badge-blue {
-            background-color: #003F7A;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-
-        .badge-red {
-            background-color: #FF0000;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-    </style>    
-    <div class="lp-course-categories-warp">
-        <div class="lp-course-categories-full-report-category">
-            <div class="lp-course-categories-full-report-category-header">
-                <h3 class="inline">
-                    {{#str}}ele_title, block_lp_coursecategories{{/str}}                                      
-                </h3>                 
-            </div>
-            <div class="container-table">
-                <table>
-                    <tr>
-                        <th></th>
-                        <th class="center">
-                            {{#str}}status, block_lp_coursecategories{{/str}}
-                        </th>
-                        <th class="center">
-                            {{#str}}data, block_lp_coursecategories{{/str}}
-                        </th>
-                        <th class="center">
-                            {{#str}}credit_hours, block_lp_coursecategories{{/str}}
-                        </th>
-                    </tr>
-                    {{#electiveplans}}
-                        <tr>
-                            <td>
-                                <h4 class="opacity">{{coursename}}</h4>
-                            </td>
-                            <td class="center">
-                                <span class="badge-{{statusbadge}}">{{status}}</span>
-                            </td>
-                            <td class="center">{{trimester}}</td>
-                            <td class="center">
-                                <b>{{finalgrade}}</b>
-                            </td>
-                        </tr>
-                    {{/electiveplans}}                     
-                </table>    
-                {{#electivetotalhours}}
-                    <h3 class="right">                        
-                        {{#str}}total_hours, block_lp_coursecategories{{/str}}: {{electivetotalhours}} {{#str}}hours, block_lp_coursecategories{{/str}}.
-                    </h3>                    
-                {{/electivetotalhours}} 
-            </div>
-        </div>
-    </div>    
-{{/haselectiveplans}}
-
 {{#hasplans}}    
     <p class="pl-alert warning">
     {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
@@ -402,3 +584,22 @@ function addCollapsibleActionsListener() {
 
 addCollapsibleActionsListener();
 {{/js}}
+
+{{#js}}
+    require(['jquery'], function($) {
+        $(document).ready(function() {
+            $('.toggle-arrow').on('click', function() {
+                var $arrow = $(this);
+                var targetId = $arrow.data('target');
+                var $competencyContainer = $('#' + targetId);
+
+                // Toggle the open class on the arrow
+                $arrow.toggleClass('open');
+
+                // Toggle the competency container with animation
+                $competencyContainer.slideToggle(300);
+            });
+        });
+    });
+{{/js}}
+
