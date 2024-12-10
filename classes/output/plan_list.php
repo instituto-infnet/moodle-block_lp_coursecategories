@@ -52,6 +52,8 @@ class plan_list implements renderable, templatable {
     /** @var array Resultado da consulta ao banco com dados dos planos dos cursos de extensão. */
     protected $extensionplansqueryresult = array();
     protected $electiveplansqueryresult = array();
+    
+    protected $reassessmentplansqueryresult = array();
     /** @var array Categorias dos cursos dos planos. */
     protected $plancategories = array();
     /** @var stdClass O usuário. */
@@ -76,6 +78,9 @@ class plan_list implements renderable, templatable {
         
         // Obter as categorias de cursos eletivos de cada plano.
         $this->electiveplansqueryresult = $this->get_plan_elective_course_categories();        
+        
+        // Obter as categorias de cursos de reavaliação de cada plano.
+        $this->reassessmentplansqueryresult = $this->get_plan_reassessment_course_categories();        
     }
 
     public function export_for_template(renderer_base $output) {
@@ -320,6 +325,36 @@ class plan_list implements renderable, templatable {
         return ($numallsessions - $absentsessions - floor($latesessions / 2)) / $numallsessions;
     }
 
+    private function get_reassessment_external_grade($competencies) {
+        $grade = 0;
+        $coursepassed = true;
+
+        $extgradescalevalues = array(
+            '2' => 50,
+            '3' => 75,
+            '4' => 100
+        );
+
+        foreach ($competencies as $competency) {            
+
+            if ($competency->proficiency !== '1') {
+                $coursepassed = false;
+            } else {
+                $grade += $extgradescalevalues[$competency->grade];
+            }
+        }
+
+        if(count($competencies)>0){
+            $grade /= count($competencies);
+        }
+
+        if ($coursepassed === false) {
+            $grade *= 0.4;
+        }
+
+        return round($grade);
+    }
+    
     private function get_external_grade($plan) {
         if (
             $plan->coursepassedidentifier === 'course_passed_ongoing'
@@ -412,6 +447,55 @@ class plan_list implements renderable, templatable {
                     AND cff.name = 'Carga horária total'
                 GROUP BY 
                     c.id, cfd.value;
+        ";
+        
+        return($DB->get_records_sql($sql, array($this->user->id)));
+    }    
+    
+    private function get_plan_reassessment_course_categories() {
+        global $DB;        
+        
+        $sql = "SELECT 
+                    c.id AS courseid,
+                    c.shortname AS courseidnumber,
+                    c.fullname AS coursename,
+                    c.sortorder AS coursesortorder,
+                    c.visible,
+                    DATE_FORMAT(FROM_UNIXTIME(c.startdate), '%d-%m-%Y') AS course_start_date,
+                    DATE_FORMAT(FROM_UNIXTIME(c.enddate), '%d-%m-%Y') AS course_end_date,
+                    CONCAT(YEAR(FROM_UNIXTIME(c.startdate)), '.', 
+                        CASE 
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 1 AND 3 THEN '1T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 4 AND 6 THEN '2T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 7 AND 9 THEN '3T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 10 AND 12 THEN '4T'
+                        END) AS Trimester,
+                    cc.id AS categoryid,
+                    cc.name AS categoryname,
+                    cc.sortorder AS categorysortorder,
+                    cc2.id AS category2id,
+                    cc2.name AS category2name,
+                    cc2.description AS category2description                    
+                FROM 
+                    mdl_course c
+                JOIN 
+                    mdl_context cx ON cx.instanceid = c.id
+                    AND cx.contextlevel = '50'
+                JOIN 
+                    mdl_role_assignments ra ON ra.contextid = cx.id
+                JOIN 
+                    mdl_role r ON r.id = ra.roleid
+                    AND r.archetype = 'student'
+                JOIN 
+                    mdl_course_categories cc ON cc.id = c.category
+                JOIN 
+                    mdl_course_categories cc2 ON cc2.id = cc.parent
+                    AND cc2.name LIKE 'Reavaliação de Disciplinas%'                    
+                WHERE 
+                    ra.userid = ?
+                    AND c.fullname NOT LIKE '%Projeto de Bloco I %'
+                GROUP BY 
+                    c.id;
         ";
         
         return($DB->get_records_sql($sql, array($this->user->id)));
@@ -723,7 +807,7 @@ class plan_list implements renderable, templatable {
         return $total;
     }
 
-    private function get_exported_data() {
+    private function get_exported_data($output) {
         $sortedcategories = array();
         foreach ($this->plancategories as $plancategory) {
             // Removido para não separar os blocos por classe,
@@ -768,6 +852,17 @@ class plan_list implements renderable, templatable {
         $elective_plans_final = $this->get_elective_course_grades($elective_plans);
         $elective_total_hours = $this->sum_extension_hours($elective_plans_final);        
         
+        // Reassessment Course (reavaliação)
+        $reassessment_plans = array_values($this->reassessmentplansqueryresult);        
+        $reassessment_plans_final = $this->get_reassessment_course_grades($reassessment_plans); 
+        
+        $rootUrl = "https://lms.infnet.edu.br/moodle/mod/assign/view.php?id=";
+        foreach ($reassessment_plans_final as $reassessment_plan) {            
+            $reassessment_plan->assessment_assign = $this->get_assessment_assignment_data($reassessment_plan->courseid);
+            $reassessment_plan->assessment_assign->url = $rootUrl . $reassessment_plan->assessment_assign->cmid;
+            $reassessment_plan->externalgrade = $this->get_reassessment_external_grade($reassessment_plan->currentgrades);
+        }    
+        // var_dump($reassessment_plans_final);exit();
         
         return array(
             'hasplans' => !empty($this->plansqueryresult),
@@ -775,6 +870,8 @@ class plan_list implements renderable, templatable {
             'extensionplans' => $extension_plans_final,
             'haselectiveplans' => !empty($elective_plans),            
             'electiveplans' => $elective_plans_final,
+            'hasreassessmentplans' => !empty($reassessment_plans),            
+            'reassessment_plans_final' => $reassessment_plans_final,
             'description' => $extension_plans_final[0]->category2description,
             'extensiontotalhours' => $extension_total_hours,
             'electivetotalhours' => $elective_total_hours,
@@ -789,6 +886,122 @@ class plan_list implements renderable, templatable {
             'lpbaseurl' => new \moodle_url('/admin/tool/lp/')
         );
     }
+
+    /**
+     * Fetches the cmid, name, and duedate of the main assessment assignment for a course.
+     *
+     * @param int $courseid The course ID.
+     * @return stdClass|false An object containing cmid, assignname, and duedate, or false if not found.
+     */
+    private function get_assessment_assignment_data($courseid) {
+        global $DB;
+        
+        if (empty($assessment_assign)) {
+            $assessment_assign = $DB->get_record_sql("
+                SELECT cm.id AS cmid, a.name AS assignname, a.duedate AS duedate
+                FROM {course_modules} cm
+                JOIN {modules} m ON cm.module = m.id
+                JOIN {assign} a ON cm.instance = a.id
+                WHERE cm.course = ?
+                AND m.name = 'assign'
+                AND cm.visible = 1
+                AND (a.name LIKE '%Assessment%' OR a.name LIKE '%Entrega de Projeto%')
+                ORDER BY a.duedate ASC
+                LIMIT 1
+            ", [$courseid]);
+        }
+
+        return $assessment_assign;
+    }
+
+    function get_current_course_grades($courseid, $userid){
+        global $DB;  
+        $sql = "
+                SELECT 
+                    cuc.id AS recordid, 
+                    cuc.proficiency as proficiency,
+                    cuc.grade AS grade,
+                    cuc.courseid AS courseid,
+                    cuc.userid AS userid,
+                    c.id AS competencyid, 
+                    c.shortname AS competencyname
+                FROM 
+                    {competency_usercompcourse} cuc
+                JOIN 
+                    {competency} c ON c.id = cuc.competencyid
+                WHERE 
+                    cuc.courseid = :courseid
+                    AND cuc.userid = :userid";
+
+            $params = [
+                'courseid' => $courseid,
+                'userid' => $userid
+            ];
+
+            return $DB->get_records_sql($sql, $params);
+
+    }
+
+    function get_reassessment_course_grades($coursesdata) {              
+        
+        foreach($coursesdata as $course){            
+            $currentgrades = $this->get_current_course_grades($course->courseid, $this->user->id);
+            if (!empty($currentgrades) && is_array($currentgrades)) {
+                $currentgrades = array_values($currentgrades);
+            }
+            
+            // Define e acrescenta o status do curso 
+            $currentDate = new \DateTime();            
+            $start_date = \DateTime::createFromFormat('d-m-Y', $course->course_start_date);
+            $end_date = \DateTime::createFromFormat('d-m-Y', $course->course_end_date);
+            
+            // Verifica se reprovou em alguma competência
+            if(!empty($currentgrades)){
+                $finalgrade = 1;                
+                foreach($currentgrades as $grade){                    
+                    if($grade->grade == '4'){
+                        $grade->gradename = 'DML';
+                        $grade->gradebadge = 'green';
+                    } elseif($grade->grade == '3'){
+                        $grade->gradename = 'DL';
+                        $grade->gradebadge = 'green';
+                    } elseif($grade->grade == '2'){
+                        $grade->gradename = 'D';
+                        $grade->gradebadge = 'green';
+                    } elseif($grade->grade == '1'){
+                        $grade->gradename = 'ND';
+                        $grade->gradebadge = 'red';
+                    } else {
+                        $grade->gradename = '-';
+                    }
+                        
+                    if($grade->proficiency === '0'){
+                        $finalgrade = 0;
+                    }
+                }                
+                $course->finalgrade = $finalgrade;
+            }    
+
+            if ($currentDate >= $start_date && $currentDate <= $end_date) {
+                $status = "Cursando";
+                $statusbadge = "blue";
+            } elseif ($currentDate < $start_date) {
+                $status = "Não iniciado";
+                $statusbadge = "blue";
+            } elseif ($course->finalgrade === 1) {
+                $status = "Aprovado";
+                $statusbadge = "green";                
+            } else {
+                $status = "Reprovado por aproveitamento";
+                $statusbadge = "red";
+            }
+            $course->status = $status;
+            $course->statusbadge = $statusbadge;           
+            $course->currentgrades = $currentgrades;
+        }
+        
+        return $coursesdata;
+    }    
     
     private function set_user_course_competencies(renderer_base $output) {
         foreach ($this->plancategories as $plancat2key => $plancategories2) {
