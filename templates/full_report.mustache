@@ -40,6 +40,7 @@
         </table>
     </div>
 {{/user}}
+
 {{#hasplans}}
     <div class="lp-course-categories-warp">
         <div class="collapsible-actions">
@@ -146,112 +147,6 @@
         {{/plancategories}}
     </div>           
 {{/hasplans}}
-
-{{#haselectiveplans}}
-    <style>
-        .container-table{
-            margin-left: 20px;
-            margin-right: 20px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .center {
-            text-align: center;
-        }
-
-        .right{
-            text-align: right;
-            padding-right: 20px;
-            margin-top: 30px;
-        }
-
-        .opacity {
-            opacity: 0.7;
-        }
-
-        .inline {
-            display: inline !important;
-        }
-
-        .badge-green {
-            background-color: #8BC34A;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-
-        .badge-blue {
-            background-color: #003F7A;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-
-        .badge-red {
-            background-color: #FF0000;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-    </style>    
-    <div class="lp-course-categories-warp">
-        <div class="lp-course-categories-full-report-category">
-            <div class="lp-course-categories-full-report-category-header">
-                <h3 class="inline">
-                    {{#str}}ele_title, block_lp_coursecategories{{/str}}                                      
-                </h3>                 
-            </div>
-            <div class="container-table">
-                <table>
-                    <tr>
-                        <th></th>
-                        <th class="center">
-                            {{#str}}status, block_lp_coursecategories{{/str}}
-                        </th>
-                        <th class="center">
-                            {{#str}}data, block_lp_coursecategories{{/str}}
-                        </th>
-                        <th class="center">
-                            {{#str}}credit_hours, block_lp_coursecategories{{/str}}
-                        </th>
-                    </tr>
-                    {{#electiveplans}}
-                        <tr>
-                            <td>
-                                <h4 class="opacity">{{coursename}}</h4>
-                            </td>
-                            <td class="center">
-                                <span class="badge-{{statusbadge}}">{{status}}</span>
-                            </td>
-                            <td class="center">{{trimester}}</td>
-                            <td class="center">
-                                <b>{{finalgrade}}</b>
-                            </td>
-                        </tr>
-                    {{/electiveplans}}                     
-                </table>    
-                {{#electivetotalhours}}
-                    <h3 class="right">                        
-                        {{#str}}total_hours, block_lp_coursecategories{{/str}}: {{electivetotalhours}} {{#str}}hours, block_lp_coursecategories{{/str}}.
-                    </h3>                    
-                {{/electivetotalhours}} 
-            </div>
-        </div>
-    </div>    
-{{/haselectiveplans}}
 
 {{#hasreassessmentplans}}
     <style>
@@ -434,6 +329,112 @@
         </div>
     </div>    
 {{/hasreassessmentplans}}
+
+{{#haselectiveplans}}
+    <style>
+        .container-table{
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right{
+            text-align: right;
+            padding-right: 20px;
+            margin-top: 30px;
+        }
+
+        .opacity {
+            opacity: 0.7;
+        }
+
+        .inline {
+            display: inline !important;
+        }
+
+        .badge-green {
+            background-color: #8BC34A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-blue {
+            background-color: #003F7A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-red {
+            background-color: #FF0000;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+    </style>    
+    <div class="lp-course-categories-warp">
+        <div class="lp-course-categories-full-report-category">
+            <div class="lp-course-categories-full-report-category-header">
+                <h3 class="inline">
+                    {{#str}}ele_title, block_lp_coursecategories{{/str}}                                      
+                </h3>                 
+            </div>
+            <div class="container-table">
+                <table>
+                    <tr>
+                        <th></th>
+                        <th class="center">
+                            {{#str}}status, block_lp_coursecategories{{/str}}
+                        </th>
+                        <th class="center">
+                            {{#str}}data, block_lp_coursecategories{{/str}}
+                        </th>
+                        <th class="center">
+                            {{#str}}credit_hours, block_lp_coursecategories{{/str}}
+                        </th>
+                    </tr>
+                    {{#electiveplans}}
+                        <tr>
+                            <td>
+                                <h4 class="opacity">{{coursename}}</h4>
+                            </td>
+                            <td class="center">
+                                <span class="badge-{{statusbadge}}">{{status}}</span>
+                            </td>
+                            <td class="center">{{trimester}}</td>
+                            <td class="center">
+                                <b>{{finalgrade}}</b>
+                            </td>
+                        </tr>
+                    {{/electiveplans}}                     
+                </table>    
+                {{#electivetotalhours}}
+                    <h3 class="right">                        
+                        {{#str}}total_hours, block_lp_coursecategories{{/str}}: {{electivetotalhours}} {{#str}}hours, block_lp_coursecategories{{/str}}.
+                    </h3>                    
+                {{/electivetotalhours}} 
+            </div>
+        </div>
+    </div>    
+{{/haselectiveplans}}
 
 {{#hasextensionplans}}
     <style>

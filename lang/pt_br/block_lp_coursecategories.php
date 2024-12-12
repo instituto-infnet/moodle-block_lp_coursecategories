@@ -57,7 +57,7 @@ $string['profile_info_title'] = 'Dados cadastrais';
 $string['sem_planos'] = 'Você não possui planos de aprendizado';
 
 // CURSOS DE EXTENSÃO
-$string['ext_title'] = 'Horas de Atividades de Extensão';
+$string['ext_title'] = 'Atividades de Extensão';
 $string['ele_title'] = 'Disciplinas Eletivas';
 $string['status'] = 'Status';
 $string['data'] = 'Trimestre';
@@ -69,4 +69,4 @@ $string['hours'] = 'horas';
 $string['credit_hours'] = 'Carga Horária';
 
 // REAVALIAÇÃO DE DISCIPLINAS
-$string['at_title'] = 'Reavaliação de Disciplinas';
+$string['at_title'] = 'Reavaliações de Disciplinas';
