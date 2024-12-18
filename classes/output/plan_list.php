@@ -762,7 +762,7 @@ class plan_list implements renderable, templatable {
                     LEFT JOIN mdl_customfield_data cfd ON cfd.instanceid = gi.courseid
                     LEFT JOIN mdl_customfield_field cff ON cff.id = cfd.fieldid
                     WHERE gi.courseid = ?
-                    AND gi.itemtype = 'course'
+                    AND gi.itemmodule = 'attendance'
                     AND gg.userid = ?
                     AND cff.name = 'Carga horária total'; 
             ";
