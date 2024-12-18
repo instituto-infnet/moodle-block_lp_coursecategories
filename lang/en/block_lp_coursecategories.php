@@ -62,7 +62,7 @@ $string['ele_title'] = 'Elective Courses';
 $string['status'] = 'Status';
 $string['data'] = 'Trimester';
 $string['effective_hours'] = 'Effective Hours';
-$string['total_hours'] = 'Total Hours';
+$string['total_hours'] = 'Total Hours Passed';
 $string['hours'] = 'hours';
 
 // CURSOS ELETIVOS

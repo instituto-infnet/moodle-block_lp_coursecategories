@@ -62,7 +62,7 @@ $string['ele_title'] = 'Disciplinas Eletivas';
 $string['status'] = 'Status';
 $string['data'] = 'Trimestre';
 $string['effective_hours'] = 'Horas Efetivas';
-$string['total_hours'] = 'Total de Horas';
+$string['total_hours'] = 'Total de Horas aprovadas';
 $string['hours'] = 'horas';
 
 // CURSOS ELETIVOS

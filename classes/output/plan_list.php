@@ -800,9 +800,10 @@ class plan_list implements renderable, templatable {
     }
     
     private function sum_extension_hours($coursesdata){         
-        $total = 0;
-        foreach($coursesdata as $course){                       
-            $total += $course->finalgrade !== '-'? $course->finalgrade: 0;
+        $total = 0;        
+        foreach($coursesdata as $course){ 
+            if($course->statusbadge === 'green')                      
+                $total += $course->finalgrade !== '-'? $course->finalgrade: 0;
         }        
         return $total;
     }
@@ -965,7 +966,7 @@ class plan_list implements renderable, templatable {
                     } elseif($grade->grade == '3'){
                         $grade->gradename = 'DL';
                         $grade->gradebadge = 'green';
-                    } elseif($grade->grade == '2'){
+                    } elseif($grade->grade == '2'){ 
                         $grade->gradename = 'D';
                         $grade->gradebadge = 'green';
                     } elseif($grade->grade == '1'){
@@ -975,7 +976,7 @@ class plan_list implements renderable, templatable {
                         $grade->gradename = '-';
                     }
                         
-                    if($grade->proficiency === '0'){
+                    if($grade->proficiency === '0' || $grade->proficiency === null){
                         $finalgrade = 0;
                     }
                 }                
