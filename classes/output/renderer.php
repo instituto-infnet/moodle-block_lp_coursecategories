@@ -35,14 +35,16 @@ use renderable;
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class renderer extends plugin_renderer_base {
+class renderer extends plugin_renderer_base
+{
 
     /**
      * Delegar ao template.
      * @param renderable $planlist
      * @return string
      */
-    public function render_plan_list(plan_list $planlist) {
+    public function render_plan_list(plan_list $planlist)
+    {
         $data = $planlist->export_for_template($this);
         return parent::render_from_template('block_lp_coursecategories/summary', $data);
     }
@@ -53,7 +55,8 @@ class renderer extends plugin_renderer_base {
      * @param renderable $planlist
      * @return string
      */
-    public function render_full_report(plan_list $planlist) {
+    public function render_full_report(plan_list $planlist)
+    {
         $data = $planlist->export_for_template($this);
         return parent::render_from_template('block_lp_coursecategories/full_report', $data);
     }
@@ -63,8 +66,20 @@ class renderer extends plugin_renderer_base {
      * @param renderable $planlist
      * @return string
      */
-    public function render_full_report_rca(plan_list $planlist) {
+    public function render_full_report_rca(plan_list $planlist)
+    {
         $data = $planlist->export_for_template($this);
         return parent::render_from_template('block_lp_coursecategories/full_report_rca', $data);
+    }
+
+    /**
+     * Delegar ao template, versão para o RCA.
+     * @param renderable $planlist
+     * @return string
+     */
+    public function render_full_report_test(plan_list_test $planlist)
+    {
+        $data = $planlist->export_for_template($this);
+        return parent::render_from_template('block_lp_coursecategories/full_report_test', $data);
     }
 }
