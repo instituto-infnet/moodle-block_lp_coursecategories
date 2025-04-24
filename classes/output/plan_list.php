@@ -235,8 +235,11 @@ class plan_list implements renderable, templatable {
 
         $courseplan->attendanceidentifier = $attendanceidentifier;
         $courseplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
+
+        // Recupera o curso de Projeto de Bloco
+        $mainBlockCourse = $this->getMainBlockCourse($categoryid);
         
-        $courseYearLimit = ($date = \DateTime::createFromFormat('d-m-Y', $courseplan->course_start_date)) ? 
+        $courseYearLimit = ($date = \DateTime::createFromFormat('d-m-Y', $mainBlockCourse->course_start_date)) ? 
                                                                             intval($date->format('Y')) >= $this->yearLimit : false;
 
         // Check if this is a "Projeto de Bloco" course
@@ -316,8 +319,7 @@ class plan_list implements renderable, templatable {
         }
         
         if($courseYearLimit === true && $isProjetoDeBloco === false) {            
-            if($courseplan->coursepassedidentifier === "course_passed_yes"){
-                $mainBlockCourse = $this->getMainBlockCourse($categoryid);                
+            if($courseplan->coursepassedidentifier === "course_passed_yes"){                               
                 if((string)$mainBlockCourse->ongoing === '1'){
                     $courseplan->coursepassedidentifier = 'course_passed_ongoing_pb';
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
@@ -329,7 +331,6 @@ class plan_list implements renderable, templatable {
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
                     $courseplan->coursepassedclass = 'ND';                    
                 }
-
             }            
         }
 
