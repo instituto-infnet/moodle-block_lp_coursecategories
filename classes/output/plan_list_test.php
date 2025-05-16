@@ -60,6 +60,8 @@ class plan_list_test implements renderable, templatable
     /** @var stdClass O usuário. */
     protected $user;
 
+    protected $yearLimit = 2024;
+
     /**
      * Construtor.
      */
@@ -244,6 +246,18 @@ class plan_list_test implements renderable, templatable
         $courseplan->attendanceidentifier = $attendanceidentifier;
         $courseplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
 
+        // Recupera o curso de Projeto de Bloco
+        $mainBlockCourse = $this->getMainBlockCourse($categoryid);
+        
+        $courseYearLimit = ($date = \DateTime::createFromFormat('d-m-Y', $mainBlockCourse->course_start_date)) ? 
+                                                                            intval($date->format('Y')) >= $this->yearLimit : false;
+
+        // Check if this is a "Projeto de Bloco" course
+        $isProjetoDeBloco = false;
+        if (isset($courseplan->coursename) && strncmp($courseplan->coursename, 'Projeto de Bloco', 15) === 0) {
+            $isProjetoDeBloco = true;
+        }
+
         /* Course passed string and class */
         $coursepassedidentifier = 'course_passed_';
 
@@ -313,9 +327,44 @@ class plan_list_test implements renderable, templatable
             $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = 'categoryincomplete';
             $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = 'ND';
         }
-        var_dump($courseplan);
-        exit();
+        
+        if($courseYearLimit === true && $isProjetoDeBloco === false) {
+            // var_dump("Inicio");
+            // var_dump('###############################################################');
+            // var_dump("CourseName: " . $courseplan->coursename);
+            // var_dump("CourseClass: " . $courseplan->coursepassedclass);
+            // var_dump("CourseIdentifier: " . $courseplan->coursepassedidentifier);
+            if($courseplan->coursepassedidentifier === "course_passed_yes"){
+                // $mainBlockCourse = $this->getMainBlockCourse($categoryid);
+                // var_dump($mainBlockCourse->coursename);
+                // var_dump("CompetenciesOk: " . $mainBlockCourse->competenciesok);
+                // var_dump("Ongoing: " . $mainBlockCourse->ongoing);
+                if((string)$mainBlockCourse->ongoing === '1'){
+                    $courseplan->coursepassedidentifier = 'course_passed_ongoing_pb';
+                    $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
+                    $courseplan->coursepassedclass = '';
+                }
+
+                if((string)$mainBlockCourse->ongoing === '0' && (string)$mainBlockCourse->competenciesok === '0'){
+                    $courseplan->coursepassedidentifier = 'course_fail_pb';
+                    $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
+                    $courseplan->coursepassedclass = 'ND';                    
+                }
+
+            }
+            // var_dump('###############################################################FIM!');
+        }
+
         return $courseplan;
+    }
+
+    private function getMainBlockCourse(string $categoryId){
+        foreach ($this->plansqueryresult as $key => $item) {
+            if ((string)$item->categoryid === (string)$categoryId && strncmp($item->coursename, 'Projeto de Bloco', 15) === 0) {
+                return $item;
+            }
+        }
+        return null;
     }
 
     private function get_attendance_percentage($allsessionssummary)
@@ -585,6 +634,15 @@ class plan_list_test implements renderable, templatable
                 c.fullname coursename,
                 c.sortorder coursesortorder,
                 c.visible,
+                DATE_FORMAT(FROM_UNIXTIME(c.startdate), '%d-%m-%Y') AS course_start_date,
+                DATE_FORMAT(FROM_UNIXTIME(c.enddate), '%d-%m-%Y') AS course_end_date,
+                CONCAT(YEAR(FROM_UNIXTIME(c.startdate)), '.', 
+                        CASE 
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 1 AND 3 THEN '1T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 4 AND 6 THEN '2T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 7 AND 9 THEN '3T'
+                            WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 10 AND 12 THEN '4T'
+                        END) AS Trimester,
                 cc.id categoryid,
                 cc.name categoryname,
                 cc.sortorder categorysortorder,
