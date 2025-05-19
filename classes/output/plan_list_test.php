@@ -225,7 +225,9 @@ class plan_list_test implements renderable, templatable
     {
         $categoryid = $courseplan->categoryid;
         $category2id = $courseplan->category2id;
-        $competenciesok = $courseplan->competenciesok;
+        $competenciesok = $courseplan->competenciesok;        
+        $userid = $this->user->id;
+        $courseid = $courseplan->courseid;
 
         /* Course competencies string */
         $courseplan->competenciescompletedstring = get_string('competencies_completed_' . $competenciesok, 'block_lp_coursecategories');
@@ -246,29 +248,29 @@ class plan_list_test implements renderable, templatable
         $courseplan->attendanceidentifier = $attendanceidentifier;
         $courseplan->attendancestring = get_string($attendanceidentifier, 'block_lp_coursecategories');
 
-        // Recupera o curso de Projeto de Bloco
-        $mainBlockCourse = $this->getMainBlockCourse($categoryid);
-        
-        $courseYearLimit = ($date = \DateTime::createFromFormat('d-m-Y', $mainBlockCourse->course_start_date)) ? 
-                                                                            intval($date->format('Y')) >= $this->yearLimit : false;
-
-        // Check if this is a "Projeto de Bloco" course
-        $isProjetoDeBloco = false;
-        if (isset($courseplan->coursename) && strncmp($courseplan->coursename, 'Projeto de Bloco', 15) === 0) {
-            $isProjetoDeBloco = true;
-        }
-
+        // Determine if an assessment is pending grading
+        $is_pending_assessment_grading = false;
+        if (isset($courseid) && $courseplan->visible == 1 && $courseplan->ongoing == 0 && $competenciesok == 0) {
+            // Only check if:
+            // - Course ID is available
+            // - Course is visible
+            // - Not already marked 'ongoing' by the main SQL query (i.e., deadline has likely passed)
+            // - Competencies are currently 'not ok' (this is the state we might want to change from 'failed' to 'ongoing')
+            $is_pending_assessment_grading = $this->has_pending_assessment_grading($courseid, $userid);            
+        }        
         /* Course passed string and class */
         $coursepassedidentifier = 'course_passed_';
 
         if (
             $courseplan->visible != 1
-            || $courseplan->ongoing == 1
+            || $courseplan->ongoing == 1 
         ) {
             $coursepassedidentifier .= 'ongoing';
             $courseplan->coursepassedclass = '';
-
             $courseplan->attendancestring .= ' ' . get_string('course_attendance_so_far', 'block_lp_coursecategories');
+        } else if ($is_pending_assessment_grading) { 
+            $coursepassedidentifier .= 'ongoing'; 
+            $courseplan->coursepassedclass = '';            
         } else if (
             $competenciesok == 1
             && (
@@ -278,29 +280,33 @@ class plan_list_test implements renderable, templatable
         ) {
             $coursepassedidentifier .= 'yes';
             $courseplan->coursepassedclass = 'D';
-        } else if ($competenciesok == 0) {
+        } else if ($competenciesok == 0) { 
             $coursepassedidentifier .= 'no_competencies';
         } else if ($this->plancategories[$category2id]->distance === false) {
             if ($attendanceidentifier === 'course_attendance_no_data') {
-                $coursepassedidentifier = $attendanceidentifier;
+                $coursepassedidentifier = $attendanceidentifier; 
                 $courseplan->coursepassedclass = '';
             } else if ($attendanceidentifier === 'course_attendance_insufficient') {
                 $coursepassedidentifier .= 'no_attendance';
             }
-        }
+        }        
 
         if ($attendanceidentifier !== 'course_attendance_no_data' && !isset($courseplan->legacyattendanceok)) {
-            $courseplan->attendancestring .= ': ' . $courseplan->attendanceformatted;
+            // Check if $courseplan->attendanceformatted is set before using it
+            if (isset($courseplan->attendanceformatted)) {
+                $courseplan->attendancestring .= ': ' . $courseplan->attendanceformatted;
+            }
         }
 
-        $courseplan->coursepassedidentifier = $coursepassedidentifier;
-        $courseplan->coursepassedstring = get_string($coursepassedidentifier, 'block_lp_coursecategories');
+        $courseplan->coursepassedidentifier = $coursepassedidentifier;        
+        
+        $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
 
         if (!isset($courseplan->coursepassedclass)) {
-            $courseplan->coursepassedclass = 'ND';
+            $courseplan->coursepassedclass = 'ND'; 
         }
 
-        /* Category complete string and class */
+        /* Category complete string and class */        
         if ($this->plancategories[$category2id]->categories[$categoryid]->categorycomplete !== 'categoryincomplete') {
             if (
                 $this->plancategories[$category2id]->distance === false
@@ -309,36 +315,46 @@ class plan_list_test implements renderable, templatable
             ) {
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = $attendanceidentifier;
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = '';
-            } else if ($coursepassedidentifier !== 'course_passed_yes') {
+            } else if ($coursepassedidentifier !== 'course_passed_yes') {                
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = 'categoryincomplete';
                 $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = 'ND';
             }
         }
 
+        // Recupera o curso de Projeto de Bloco
+        $mainBlockCourse = $this->getMainBlockCourse($categoryid);
+        
+        $courseYearLimit = false;
+        if ($mainBlockCourse && isset($mainBlockCourse->course_start_date)) {
+            $date = \DateTime::createFromFormat('d-m-Y', $mainBlockCourse->course_start_date);
+            if ($date) {
+                $courseYearLimit = intval($date->format('Y')) >= $this->yearLimit;
+            }
+        }
+
+        $isProjetoDeBloco = false;
+        if (isset($courseplan->coursename) && strncmp($courseplan->coursename, 'Projeto de Bloco', 15) === 0) {
+            $isProjetoDeBloco = true;
+        }
+
         // Faz checagem se o AT do aluno está marcado como plágio
-        $plagiarism = $this->check_plagiarism($courseplan->courseid, $courseplan->coursecompetencies->gradableuserid);
+        // Ensure gradableuserid and courseid are valid before calling check_plagiarism
+        $plagiarism = null;
+        if (isset($courseplan->courseid) && isset($courseplan->coursecompetencies->gradableuserid)) {
+             $plagiarism = $this->check_plagiarism($courseplan->courseid, $courseplan->coursecompetencies->gradableuserid);
+        }
         $rubric_plagiarism = get_string('rubric_plagiarism', 'block_lp_coursecategories');
 
-        if (intval($plagiarism->rate_score) === 0 && $plagiarism->rubric_description === $rubric_plagiarism) {
-            // $courseplan->competenciescompletedstring = get_string('competencies_plagiarism', 'block_lp_coursecategories');
+        if ($plagiarism && isset($plagiarism->rate_score) && intval($plagiarism->rate_score) === 0 && isset($plagiarism->rubric_description) && $plagiarism->rubric_description === $rubric_plagiarism) {
             $courseplan->coursepassedclass = 'ND';
             $courseplan->coursepassedidentifier = 'course_passed_plagiarism';
             $courseplan->coursepassedstring = get_string('course_passed_plagiarism', 'block_lp_coursecategories');
             $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = 'categoryincomplete';
             $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = 'ND';
-        }
+        }        
         
-        if($courseYearLimit === true && $isProjetoDeBloco === false) {
-            // var_dump("Inicio");
-            // var_dump('###############################################################');
-            // var_dump("CourseName: " . $courseplan->coursename);
-            // var_dump("CourseClass: " . $courseplan->coursepassedclass);
-            // var_dump("CourseIdentifier: " . $courseplan->coursepassedidentifier);
+        if($mainBlockCourse && $courseYearLimit === true && $isProjetoDeBloco === false) {
             if($courseplan->coursepassedidentifier === "course_passed_yes"){
-                // $mainBlockCourse = $this->getMainBlockCourse($categoryid);
-                // var_dump($mainBlockCourse->coursename);
-                // var_dump("CompetenciesOk: " . $mainBlockCourse->competenciesok);
-                // var_dump("Ongoing: " . $mainBlockCourse->ongoing);
                 if((string)$mainBlockCourse->ongoing === '1'){
                     $courseplan->coursepassedidentifier = 'course_passed_ongoing_pb';
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
@@ -350,9 +366,7 @@ class plan_list_test implements renderable, templatable
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
                     $courseplan->coursepassedclass = 'ND';                    
                 }
-
             }
-            // var_dump('###############################################################FIM!');
         }
 
         return $courseplan;
@@ -1165,5 +1179,73 @@ class plan_list_test implements renderable, templatable
             substr($cpf, 6, 3) . '-' .
             substr($cpf, 9, 2)
         ;
+    }
+
+    /**
+     * Checks if the user has any 'assessment' type activities (assignments or quizzes)
+     * in the given course that have been submitted, are past their deadline, but not yet graded.
+     *
+     * @param int $courseid The ID of the course.
+     * @param int $userid The ID of the user (student).
+     * @return bool True if there's at least one such pending assessment, false otherwise.
+     */
+    private function has_pending_assessment_grading($courseid, $userid) {
+        global $DB;
+
+        $now = time();
+        $pending_grading_found = false;
+
+        // 1. Check 'assign' activities
+        // Fetches assignments matching common assessment names.
+        // Checks for a submission, if the deadline passed, and if a grade record exists.
+        $assign_sql = "SELECT a.id, a.duedate, a.cutoffdate, a.grade as maxgrade,
+                              asub.id as submissionid, asub.status as submissionstatus,
+                              ag.id as gradeid, ag.grade as grade 
+                       FROM {assign} a
+                       JOIN {course_modules} cm ON cm.instance = a.id AND cm.module = (SELECT id FROM {modules} WHERE name = 'assign')
+                       LEFT JOIN {assign_submission} asub ON asub.assignment = a.id AND asub.userid = :userid AND asub.latest = 1
+                       LEFT JOIN {assign_grades} ag ON ag.assignment = a.id AND ag.userid = :userid_ag
+                       WHERE cm.course = :courseid
+                         AND cm.deletioninprogress = 0
+                         AND (a.name LIKE :assessmentname1 OR a.name LIKE :assessmentname2 OR a.name LIKE :assessmentname3)";
+
+        $assign_params = [
+            'userid' => $userid,
+            'userid_ag' => $userid,
+            'courseid' => $courseid,
+            'assessmentname1' => '%assessment%',
+            'assessmentname2' => '%apresentação%',
+            'assessmentname3' => '%entrega%',
+        ];
+
+        if ($assignments = $DB->get_records_sql($assign_sql, $assign_params)) {
+            foreach ($assignments as $assign) {
+                // Determine the effective deadline (cutoffdate if set and valid, otherwise duedate)
+                $deadline = 0;
+                if (!empty($assign->cutoffdate) && $assign->cutoffdate > 0) {
+                    $deadline = (int)$assign->cutoffdate;
+                } else if (!empty($assign->duedate) && $assign->duedate > 0) {
+                    $deadline = (int)$assign->duedate;
+                }
+
+                $has_submission = (!empty($assign->submissionid) && $assign->submissionstatus == 'submitted'); // true
+                $due_date_passed = ($deadline > 0 && $deadline < $now); //true
+                $no_grade_yet = (empty($assign->gradeid) || $assign->grade < 0 ); // No record in assign_grades means no grade yet. false
+
+                if ($has_submission && $due_date_passed && $no_grade_yet) {
+                    // Consider it pending if it's a gradable assignment (points > 0 or uses a scale (maxgrade < 0))
+                    if ($assign->maxgrade != 0) {
+                        $pending_grading_found = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($pending_grading_found) {
+            return true;
+        }
+        
+        return $pending_grading_found;
     }
 }
