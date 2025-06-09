@@ -47,6 +47,14 @@ use templatable;
  */
 class plan_list implements renderable, templatable {
 
+     /**
+     * The period after an assessment's due date, if still ungraded,
+     * after which the student will be marked as failed for that course component.
+     * Use a string compatible with strtotime(), e.g., '2 months', '60 days'.
+     * @var string
+     */
+    protected $gradingTimeoutPeriodInactivity = '35 days';
+    
     /** @var array Resultado da consulta ao banco com dados dos planos. */
     protected $plansqueryresult = array();
     /** @var array Resultado da consulta ao banco com dados dos planos dos cursos de extensão. */
@@ -1159,11 +1167,9 @@ class plan_list implements renderable, templatable {
         global $DB;
 
         $now = time();
-        $pending_grading_found = false;
+        $pending_grading_found = false;        
 
-        // 1. Check 'assign' activities
-        // Fetches assignments matching common assessment names.
-        // Checks for a submission, if the deadline passed, and if a grade record exists.
+        // 1. Check 'assign' activities        
         $assign_sql = "SELECT a.id, a.duedate, a.cutoffdate, a.grade as maxgrade,
                               asub.id as submissionid, asub.status as submissionstatus,
                               ag.id as gradeid, ag.grade as grade 
@@ -1200,7 +1206,11 @@ class plan_list implements renderable, templatable {
 
                 if ($has_submission && $due_date_passed && $no_grade_yet) {                    
                     if ($assign->maxgrade != 0) {
-                        $pending_grading_found = true;
+                        $timeout_grace_period_ends = strtotime("+" . $this->gradingTimeoutPeriodInactivity, $deadline);
+                        if ($now < $timeout_grace_period_ends) {
+                            // It's pending, but still within the grace period for grading.
+                            $pending_grading_found = true;
+                        }                         
                         break;
                     }
                 }

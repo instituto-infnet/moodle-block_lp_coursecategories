@@ -45,15 +45,27 @@ use templatable;
  * @copyright  2017 Instituto Infnet {@link http://infnet.edu.br}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plan_list_test implements renderable, templatable
-{
+class plan_list_test implements renderable, templatable {
+
+    /**
+     * The period after an assessment's due date, if still ungraded,
+     * after which the student will be marked as failed for that course component.
+     * Use a string compatible with strtotime(), e.g., '2 months', '60 days'.
+     * @var string
+     */
+    protected $gradingTimeoutPeriodInactivity = '2 months';
+
+    // Constants for grading status
+    const GRADING_STATUS_NONE = 'none'; 
+    const GRADING_STATUS_PENDING_WITHIN_TIMEOUT = 'pending_within_timeout'; 
+    const GRADING_STATUS_PENDING_EXCEEDED_TIMEOUT = 'pending_exceeded_timeout'; 
 
     /** @var array Resultado da consulta ao banco com dados dos planos. */
     protected $plansqueryresult = array();
     /** @var array Resultado da consulta ao banco com dados dos planos dos cursos de extensão. */
     protected $extensionplansqueryresult = array();
     protected $electiveplansqueryresult = array();
-
+    
     protected $reassessmentplansqueryresult = array();
     /** @var array Categorias dos cursos dos planos. */
     protected $plancategories = array();
@@ -65,8 +77,7 @@ class plan_list_test implements renderable, templatable
     /**
      * Construtor.
      */
-    public function __construct($user = null)
-    {
+    public function __construct($user = null) {
         global $USER;
         if (!$user) {
             $user = $USER;
@@ -76,19 +87,18 @@ class plan_list_test implements renderable, templatable
 
         // Obter as categorias de cursos de cada plano.
         $this->plansqueryresult = $this->get_plan_course_categories($user->id);
-
+          
         // Obter as categorias de cursos de cada plano.
         $this->extensionplansqueryresult = $this->get_plan_extension_course_categories();
-
+        
         // Obter as categorias de cursos eletivos de cada plano.
-        $this->electiveplansqueryresult = $this->get_plan_elective_course_categories();
-
+        $this->electiveplansqueryresult = $this->get_plan_elective_course_categories();        
+        
         // Obter as categorias de cursos de reavaliação de cada plano.
-        $this->reassessmentplansqueryresult = $this->get_plan_reassessment_course_categories();
+        $this->reassessmentplansqueryresult = $this->get_plan_reassessment_course_categories();        
     }
 
-    public function export_for_template(renderer_base $output)
-    {
+    public function export_for_template(renderer_base $output) {
         $this->set_user_data($output);
         $this->set_plans_data($output);
         $this->set_user_course_competencies($output);
@@ -101,13 +111,11 @@ class plan_list_test implements renderable, templatable
      *
      * @return boolean
      */
-    public function has_content()
-    {
+    public function has_content() {
         return !empty($this->plansqueryresult);
     }
 
-    private function set_user_data(renderer_base $output)
-    {
+    private function set_user_data(renderer_base $output) {
         $user = $this->user;
 
         $user->picture = $output->user_picture($user, array('visibletoscreenreaders' => false));
@@ -119,8 +127,7 @@ class plan_list_test implements renderable, templatable
         $this->user = $user;
     }
 
-    private function set_plans_data(renderer_base $output)
-    {
+    private function set_plans_data(renderer_base $output) {
         // Reinicialização da variável porque export_for_template é chamado duas vezes
         $this->plancategories = array();
 
@@ -137,8 +144,7 @@ class plan_list_test implements renderable, templatable
         }
     }
 
-    private function set_plan_category($courseplan, renderer_base $output)
-    {
+    private function set_plan_category($courseplan, renderer_base $output) {
         $categoryid = $courseplan->categoryid;
         $category2id = $courseplan->category2id;
 
@@ -164,8 +170,7 @@ class plan_list_test implements renderable, templatable
         return $courseplan;
     }
 
-    private function set_attendance_data($courseplan)
-    {
+    private function set_attendance_data($courseplan) {
         if (isset($courseplan->attendanceid)) {
             $attendanceid = $courseplan->attendanceid;
             $courseplan->attendancecmid = $courseplan->attendancecmid;
@@ -181,10 +186,9 @@ class plan_list_test implements renderable, templatable
         return $courseplan;
     }
 
-    private function check_plagiarism($courseid, $userid)
-    {
+    private function check_plagiarism($courseid, $userid){
         global $DB;
-
+        
         $assign_sql = "SELECT id, course, name FROM {assign} where course = :courseid AND name like 'assessment%'";
         // Bind the parameters for the SQL query
         $params = array('courseid' => $courseid);
@@ -192,7 +196,7 @@ class plan_list_test implements renderable, templatable
         // Fetch the data using get_records_sql
         $assign_data = $DB->get_records_sql($assign_sql, $params);
         $assign = array_values($assign_data);
-
+        
         $sql = "SELECT
             u.firstname,
             u.lastname,
@@ -214,10 +218,10 @@ class plan_list_test implements renderable, templatable
 
         // Bind the parameters for the SQL query
         $params = array('assignmentid' => $assign[0]->id, 'userid' => $userid);
-
+        
         // Fetch the data using get_records_sql
         $data = $DB->get_records_sql($sql, $params);
-
+        
         return $data['Aluno'];
     }
 
@@ -250,14 +254,10 @@ class plan_list_test implements renderable, templatable
 
         // Determine if an assessment is pending grading
         $is_pending_assessment_grading = false;
-        if (isset($courseid) && $courseplan->visible == 1 && $courseplan->ongoing == 0 && $competenciesok == 0) {
-            // Only check if:
-            // - Course ID is available
-            // - Course is visible
-            // - Not already marked 'ongoing' by the main SQL query (i.e., deadline has likely passed)
-            // - Competencies are currently 'not ok' (this is the state we might want to change from 'failed' to 'ongoing')
+        if (isset($courseid) && $courseplan->visible == 1 && $courseplan->ongoing == 0 && $competenciesok == 0) {            
             $is_pending_assessment_grading = $this->has_pending_assessment_grading($courseid, $userid);            
-        }        
+        }       
+
         /* Course passed string and class */
         $coursepassedidentifier = 'course_passed_';
 
@@ -371,7 +371,7 @@ class plan_list_test implements renderable, templatable
 
         return $courseplan;
     }
-
+    
     private function getMainBlockCourse(string $categoryId){
         foreach ($this->plansqueryresult as $key => $item) {
             if ((string)$item->categoryid === (string)$categoryId && strncmp($item->coursename, 'Projeto de Bloco', 15) === 0) {
@@ -381,8 +381,7 @@ class plan_list_test implements renderable, templatable
         return null;
     }
 
-    private function get_attendance_percentage($allsessionssummary)
-    {
+    private function get_attendance_percentage($allsessionssummary) {
         $numallsessions = $allsessionssummary->numallsessions;
         $sessionsbyacronym = array_pop($allsessionssummary->userstakensessionsbyacronym);
 
@@ -400,8 +399,7 @@ class plan_list_test implements renderable, templatable
         return ($numallsessions - $absentsessions - floor($latesessions / 2)) / $numallsessions;
     }
 
-    private function get_reassessment_external_grade($competencies)
-    {
+    private function get_reassessment_external_grade($competencies) {
         $grade = 0;
         $coursepassed = true;
 
@@ -411,7 +409,7 @@ class plan_list_test implements renderable, templatable
             '4' => 100
         );
 
-        foreach ($competencies as $competency) {
+        foreach ($competencies as $competency) {            
 
             if ($competency->proficiency !== '1') {
                 $coursepassed = false;
@@ -420,7 +418,7 @@ class plan_list_test implements renderable, templatable
             }
         }
 
-        if (count($competencies) > 0) {
+        if(count($competencies)>0){
             $grade /= count($competencies);
         }
 
@@ -430,9 +428,8 @@ class plan_list_test implements renderable, templatable
 
         return round($grade);
     }
-
-    private function get_external_grade($plan)
-    {
+    
+    private function get_external_grade($plan) {
         if (
             $plan->coursepassedidentifier === 'course_passed_ongoing'
             || count($plan->coursecompetencies->competencies) === 0
@@ -474,9 +471,8 @@ class plan_list_test implements renderable, templatable
         return round($grade);
     }
 
-    private function get_plan_elective_course_categories()
-    {
-        global $DB;
+    private function get_plan_elective_course_categories() {
+        global $DB;        
         // Apenas as eletivas com o campo customizado "Infnet/Carga horária total" retornam na consulta abaixo
         $sql = "SELECT 
                     c.id AS courseid,
@@ -526,14 +522,13 @@ class plan_list_test implements renderable, templatable
                 GROUP BY 
                     c.id, cfd.value;
         ";
-
-        return ($DB->get_records_sql($sql, array($this->user->id)));
-    }
-
-    private function get_plan_reassessment_course_categories()
-    {
-        global $DB;
-
+        
+        return($DB->get_records_sql($sql, array($this->user->id)));
+    }    
+    
+    private function get_plan_reassessment_course_categories() {
+        global $DB;        
+        
         $sql = "SELECT 
                     c.id AS courseid,
                     c.shortname AS courseidnumber,
@@ -576,14 +571,13 @@ class plan_list_test implements renderable, templatable
                 GROUP BY 
                     c.id;
         ";
-
-        return ($DB->get_records_sql($sql, array($this->user->id)));
-    }
-
-    private function get_plan_extension_course_categories()
-    {
-        global $DB;
-
+        
+        return($DB->get_records_sql($sql, array($this->user->id)));
+    }    
+    
+    private function get_plan_extension_course_categories() {
+        global $DB;        
+        
         $sql = "SELECT 
                     c.id AS courseid,
                     c.shortname AS courseidnumber,
@@ -634,12 +628,11 @@ class plan_list_test implements renderable, templatable
                 GROUP BY 
                     c.id;
         ";
+        
+        return($DB->get_records_sql($sql, array($this->user->id)));
+    }    
 
-        return ($DB->get_records_sql($sql, array($this->user->id)));
-    }
-
-    private function get_plan_course_categories()
-    {
+    private function get_plan_course_categories() {
         global $DB;
 
         return $DB->get_records_sql("
@@ -736,8 +729,7 @@ class plan_list_test implements renderable, templatable
         ", array($this->user->id));
     }
 
-    private function create_plan_category2_object($plancategoryrecord)
-    {
+    private function create_plan_category2_object($plancategoryrecord) {
         $category2 = new \stdClass();
 
         $category2->categoryid = $plancategoryrecord->category2id;
@@ -752,8 +744,7 @@ class plan_list_test implements renderable, templatable
         return $category2;
     }
 
-    private function create_plan_category_object($plancategoryrecord)
-    {
+    private function create_plan_category_object($plancategoryrecord) {
         $category = new \stdClass();
 
         $category->categoryid = $plancategoryrecord->categoryid;
@@ -769,8 +760,7 @@ class plan_list_test implements renderable, templatable
         return $category;
     }
 
-    private function get_course_competency_activities($plan)
-    {
+    private function get_course_competency_activities($plan) {
         $coursemodules = array();
 
         foreach ($plan->coursecompetencies->competencies as $competency) {
@@ -794,12 +784,11 @@ class plan_list_test implements renderable, templatable
 
         return $coursemodules;
     }
-
-    private function get_course_grades($coursesdata)
-    {
-        global $DB;
-
-        foreach ($coursesdata as $course) {
+    
+    private function get_course_grades($coursesdata){
+        global $DB;        
+        
+        foreach($coursesdata as $course){
             $sql = "SELECT 
                         gi.courseid,
                         gi.itemname,
@@ -812,13 +801,13 @@ class plan_list_test implements renderable, templatable
                         WHERE (gi.courseid = ? AND gi.itemtype = 'course') 
                         AND gg.userid = ?; 
             ";
-            $result = reset($DB->get_records_sql($sql, array($course->courseid, $this->user->id)));
-
+            $result = reset($DB->get_records_sql($sql, array($course->courseid,$this->user->id)));
+            
             // Define e acrescenta o status do curso 
-            $currentDate = new \DateTime();
+            $currentDate = new \DateTime();            
             $start_date = \DateTime::createFromFormat('d-m-Y', $course->course_start_date);
             $end_date = \DateTime::createFromFormat('d-m-Y', $course->course_end_date);
-
+            
             if ($currentDate >= $start_date && $currentDate <= $end_date) {
                 $status = "Cursando";
                 $statusbadge = "blue";
@@ -833,17 +822,16 @@ class plan_list_test implements renderable, templatable
             $course->statusbadge = $statusbadge;
 
             // Acrescenta o total de horas lançado do curso            
-            $course->finalgrade = $result->finalgrade ? intval(floatval($result->finalgrade)) . 'h' : '-';
+            $course->finalgrade = $result->finalgrade ? intval(floatval($result->finalgrade)) . 'h': '-';
         }
-
+        
         return $coursesdata;
     }
-
-    private function get_elective_course_grades($coursesdata)
-    {
-        global $DB;
-
-        foreach ($coursesdata as $course) {
+    
+    private function get_elective_course_grades($coursesdata){
+        global $DB;        
+        
+        foreach($coursesdata as $course){
             $sql = "SELECT 
                         gi.courseid,
                         gi.itemname,
@@ -857,17 +845,17 @@ class plan_list_test implements renderable, templatable
                     LEFT JOIN mdl_customfield_data cfd ON cfd.instanceid = gi.courseid
                     LEFT JOIN mdl_customfield_field cff ON cff.id = cfd.fieldid
                     WHERE gi.courseid = ?
-                    AND gi.itemtype = 'course'
+                    AND gi.itemmodule = 'attendance'
                     AND gg.userid = ?
                     AND cff.name = 'Carga horária total'; 
             ";
-            $result = reset($DB->get_records_sql($sql, array($course->courseid, $this->user->id)));
-
+            $result = reset($DB->get_records_sql($sql, array($course->courseid,$this->user->id)));
+            
             // Define e acrescenta o status do curso 
-            $currentDate = new \DateTime();
+            $currentDate = new \DateTime();            
             $start_date = \DateTime::createFromFormat('d-m-Y', $course->course_start_date);
             $end_date = \DateTime::createFromFormat('d-m-Y', $course->course_end_date);
-
+            
             // Acrescenta o total de horas lançado do curso            
             $course->finalgrade = $result->finalgrade ? intval(floatval($result->finalgrade)) : '-';
 
@@ -888,23 +876,22 @@ class plan_list_test implements renderable, templatable
                 $statusbadge = "red";
             }
             $course->status = $status;
-            $course->statusbadge = $statusbadge;
+            $course->statusbadge = $statusbadge;           
         }
-
+        
         return $coursesdata;
     }
-
-    private function sum_extension_hours($coursesdata)
-    {
-        $total = 0;
-        foreach ($coursesdata as $course) {
-            $total += $course->finalgrade !== '-' ? $course->finalgrade : 0;
-        }
+    
+    private function sum_extension_hours($coursesdata){         
+        $total = 0;        
+        foreach($coursesdata as $course){ 
+            if($course->statusbadge === 'green')                      
+                $total += $course->finalgrade !== '-'? $course->finalgrade: 0;
+        }        
         return $total;
     }
 
-    private function get_exported_data($output)
-    {
+    private function get_exported_data($output) {
         $sortedcategories = array();
         foreach ($this->plancategories as $plancategory) {
             // Removido para não separar os blocos por classe,
@@ -917,7 +904,7 @@ class plan_list_test implements renderable, templatable
 
                 usort($category->plans, array($this, "compare_courses_order"));
 
-                foreach ($category->plans as $plan) {
+                foreach($category->plans as $plan) {
                     if (
                         isset($plan->coursecompetencies)
                         && count($plan->coursecompetencies->competencies) > 0
@@ -943,31 +930,31 @@ class plan_list_test implements renderable, templatable
         $extension_plans = array_values($this->extensionplansqueryresult);
         $extension_plans_final = $this->get_course_grades($extension_plans);
         $extension_total_hours = $this->sum_extension_hours($extension_plans_final);
-
+        
         // Elective Course
-        $elective_plans = array_values($this->electiveplansqueryresult);
+        $elective_plans = array_values($this->electiveplansqueryresult);        
         $elective_plans_final = $this->get_elective_course_grades($elective_plans);
-        $elective_total_hours = $this->sum_extension_hours($elective_plans_final);
-
+        $elective_total_hours = $this->sum_extension_hours($elective_plans_final);        
+        
         // Reassessment Course (reavaliação)
-        $reassessment_plans = array_values($this->reassessmentplansqueryresult);
-        $reassessment_plans_final = $this->get_reassessment_course_grades($reassessment_plans);
-
+        $reassessment_plans = array_values($this->reassessmentplansqueryresult);        
+        $reassessment_plans_final = $this->get_reassessment_course_grades($reassessment_plans); 
+        
         $rootUrl = "https://lms.infnet.edu.br/moodle/mod/assign/view.php?id=";
-        foreach ($reassessment_plans_final as $reassessment_plan) {
+        foreach ($reassessment_plans_final as $reassessment_plan) {            
             $reassessment_plan->assessment_assign = $this->get_assessment_assignment_data($reassessment_plan->courseid);
             $reassessment_plan->assessment_assign->url = $rootUrl . $reassessment_plan->assessment_assign->cmid;
             $reassessment_plan->externalgrade = $this->get_reassessment_external_grade($reassessment_plan->currentgrades);
-        }
+        }    
         // var_dump($reassessment_plans_final);exit();
-
+        
         return array(
             'hasplans' => !empty($this->plansqueryresult),
-            'hasextensionplans' => !empty($extension_plans),
+            'hasextensionplans' => !empty($extension_plans),            
             'extensionplans' => $extension_plans_final,
-            'haselectiveplans' => !empty($elective_plans),
+            'haselectiveplans' => !empty($elective_plans),            
             'electiveplans' => $elective_plans_final,
-            'hasreassessmentplans' => !empty($reassessment_plans),
+            'hasreassessmentplans' => !empty($reassessment_plans),            
             'reassessment_plans_final' => $reassessment_plans_final,
             'description' => $extension_plans_final[0]->category2description,
             'extensiontotalhours' => $extension_total_hours,
@@ -990,10 +977,9 @@ class plan_list_test implements renderable, templatable
      * @param int $courseid The course ID.
      * @return stdClass|false An object containing cmid, assignname, and duedate, or false if not found.
      */
-    private function get_assessment_assignment_data($courseid)
-    {
+    private function get_assessment_assignment_data($courseid) {
         global $DB;
-
+        
         if (empty($assessment_assign)) {
             $assessment_assign = $DB->get_record_sql("
                 SELECT cm.id AS cmid, a.name AS assignname, a.duedate AS duedate
@@ -1012,9 +998,8 @@ class plan_list_test implements renderable, templatable
         return $assessment_assign;
     }
 
-    function get_current_course_grades($courseid, $userid)
-    {
-        global $DB;
+    function get_current_course_grades($courseid, $userid){
+        global $DB;  
         $sql = "
                 SELECT 
                     cuc.id AS recordid, 
@@ -1032,55 +1017,54 @@ class plan_list_test implements renderable, templatable
                     cuc.courseid = :courseid
                     AND cuc.userid = :userid";
 
-        $params = [
-            'courseid' => $courseid,
-            'userid' => $userid
-        ];
+            $params = [
+                'courseid' => $courseid,
+                'userid' => $userid
+            ];
 
-        return $DB->get_records_sql($sql, $params);
+            return $DB->get_records_sql($sql, $params);
 
     }
 
-    function get_reassessment_course_grades($coursesdata)
-    {
-
-        foreach ($coursesdata as $course) {
+    function get_reassessment_course_grades($coursesdata) {              
+        
+        foreach($coursesdata as $course){            
             $currentgrades = $this->get_current_course_grades($course->courseid, $this->user->id);
             if (!empty($currentgrades) && is_array($currentgrades)) {
                 $currentgrades = array_values($currentgrades);
             }
-
+            
             // Define e acrescenta o status do curso 
-            $currentDate = new \DateTime();
+            $currentDate = new \DateTime();            
             $start_date = \DateTime::createFromFormat('d-m-Y', $course->course_start_date);
             $end_date = \DateTime::createFromFormat('d-m-Y', $course->course_end_date);
-
+            
             // Verifica se reprovou em alguma competência
-            if (!empty($currentgrades)) {
-                $finalgrade = 1;
-                foreach ($currentgrades as $grade) {
-                    if ($grade->grade == '4') {
+            if(!empty($currentgrades)){
+                $finalgrade = 1;                
+                foreach($currentgrades as $grade){                    
+                    if($grade->grade == '4'){
                         $grade->gradename = 'DML';
                         $grade->gradebadge = 'green';
-                    } elseif ($grade->grade == '3') {
+                    } elseif($grade->grade == '3'){
                         $grade->gradename = 'DL';
                         $grade->gradebadge = 'green';
-                    } elseif ($grade->grade == '2') {
+                    } elseif($grade->grade == '2'){ 
                         $grade->gradename = 'D';
                         $grade->gradebadge = 'green';
-                    } elseif ($grade->grade == '1') {
+                    } elseif($grade->grade == '1'){
                         $grade->gradename = 'ND';
                         $grade->gradebadge = 'red';
                     } else {
                         $grade->gradename = '-';
                     }
-
-                    if ($grade->proficiency === '0') {
+                        
+                    if($grade->proficiency === '0' || $grade->proficiency === null){
                         $finalgrade = 0;
                     }
-                }
+                }                
                 $course->finalgrade = $finalgrade;
-            }
+            }    
 
             if ($currentDate >= $start_date && $currentDate <= $end_date) {
                 $status = "Cursando";
@@ -1090,21 +1074,20 @@ class plan_list_test implements renderable, templatable
                 $statusbadge = "blue";
             } elseif ($course->finalgrade === 1) {
                 $status = "Aprovado";
-                $statusbadge = "green";
+                $statusbadge = "green";                
             } else {
                 $status = "Reprovado por aproveitamento";
                 $statusbadge = "red";
             }
             $course->status = $status;
-            $course->statusbadge = $statusbadge;
+            $course->statusbadge = $statusbadge;           
             $course->currentgrades = $currentgrades;
         }
-
+        
         return $coursesdata;
-    }
-
-    private function set_user_course_competencies(renderer_base $output)
-    {
+    }    
+    
+    private function set_user_course_competencies(renderer_base $output) {
         foreach ($this->plancategories as $plancat2key => $plancategories2) {
             foreach ($plancategories2->categories as $plancatkey => $plancategories) {
                 foreach ($plancategories->plans as $plankey => $plan) {
@@ -1132,8 +1115,7 @@ class plan_list_test implements renderable, templatable
         }
     }
 
-    private function compare_categories_order($category1, $category2)
-    {
+    private function compare_categories_order($category1, $category2) {
         preg_match('/\[(\d\d)E(\d)/', $category1->categoryname, $cat1firsttrimester);
         preg_match('/\[(\d\d)E(\d)/', $category2->categoryname, $cat2firsttrimester);
 
@@ -1156,24 +1138,21 @@ class plan_list_test implements renderable, templatable
         return ($category1->categoryorder < $category2->categoryorder) ? -1 : 1;
     }
 
-    private function compare_courses_order($course1, $course2)
-    {
+    private function compare_courses_order($course1, $course2) {
         if ($course1->planindexincategory === $course2->planindexincategory) {
             return 0;
         }
         return ($course1->planindexincategory < $course2->planindexincategory) ? -1 : 1;
     }
 
-    private function compare_competencies_idnumber($competency1, $competency2)
-    {
+    private function compare_competencies_idnumber($competency1, $competency2) {
         if ($competency1['competency']->idnumber === $competency2['competency']->idnumber) {
             return 0;
         }
         return ($competency1['competency']->idnumber < $competency2['competency']->idnumber) ? -1 : 1;
     }
 
-    private function format_cpf($cpf)
-    {
+    private function format_cpf($cpf) {
         return substr($cpf, 0, 3) . '.' .
             substr($cpf, 3, 3) . '.' .
             substr($cpf, 6, 3) . '-' .
@@ -1193,11 +1172,9 @@ class plan_list_test implements renderable, templatable
         global $DB;
 
         $now = time();
-        $pending_grading_found = false;
+        $pending_grading_found = false;        
 
-        // 1. Check 'assign' activities
-        // Fetches assignments matching common assessment names.
-        // Checks for a submission, if the deadline passed, and if a grade record exists.
+        // 1. Check 'assign' activities        
         $assign_sql = "SELECT a.id, a.duedate, a.cutoffdate, a.grade as maxgrade,
                               asub.id as submissionid, asub.status as submissionstatus,
                               ag.id as gradeid, ag.grade as grade 
@@ -1228,14 +1205,17 @@ class plan_list_test implements renderable, templatable
                     $deadline = (int)$assign->duedate;
                 }
 
-                $has_submission = (!empty($assign->submissionid) && $assign->submissionstatus == 'submitted'); // true
-                $due_date_passed = ($deadline > 0 && $deadline < $now); //true
-                $no_grade_yet = (empty($assign->gradeid) || $assign->grade < 0 ); // No record in assign_grades means no grade yet. false
+                $has_submission = (!empty($assign->submissionid) && $assign->submissionstatus == 'submitted'); 
+                $due_date_passed = ($deadline > 0 && $deadline < $now);
+                $no_grade_yet = (empty($assign->gradeid) || $assign->grade < 0 ); 
 
-                if ($has_submission && $due_date_passed && $no_grade_yet) {
-                    // Consider it pending if it's a gradable assignment (points > 0 or uses a scale (maxgrade < 0))
+                if ($has_submission && $due_date_passed && $no_grade_yet) {                    
                     if ($assign->maxgrade != 0) {
-                        $pending_grading_found = true;
+                        $timeout_grace_period_ends = strtotime("+" . $this->gradingTimeoutPeriodInactivity, $deadline);
+                        if ($now < $timeout_grace_period_ends) {
+                            // It's pending, but still within the grace period for grading.
+                            $pending_grading_found = true;
+                        }                         
                         break;
                     }
                 }
