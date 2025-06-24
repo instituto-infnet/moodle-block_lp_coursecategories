@@ -330,6 +330,8 @@ class plan_list_test implements renderable, templatable {
             if ($date) {
                 $courseYearLimit = intval($date->format('Y')) >= $this->yearLimit;
             }
+
+            $is_pb_pending_grading = $this->has_pending_assessment_grading($mainBlockCourse->courseid, $userid); 
         }
 
         $isProjetoDeBloco = false;
@@ -352,16 +354,16 @@ class plan_list_test implements renderable, templatable {
             $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = 'categoryincomplete';
             $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = 'ND';
         }        
-        
+       
         if($mainBlockCourse && $courseYearLimit === true && $isProjetoDeBloco === false) {
-            if($courseplan->coursepassedidentifier === "course_passed_yes"){
-                if((string)$mainBlockCourse->ongoing === '1'){
+            if($courseplan->coursepassedidentifier === "course_passed_yes") {
+                if((string)$mainBlockCourse->ongoing === '1' || $is_pb_pending_grading === true){
                     $courseplan->coursepassedidentifier = 'course_passed_ongoing_pb';
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
                     $courseplan->coursepassedclass = '';
                 }
 
-                if((string)$mainBlockCourse->ongoing === '0' && (string)$mainBlockCourse->competenciesok === '0'){
+                if(((string)$mainBlockCourse->ongoing === '0' && (string)$mainBlockCourse->competenciesok === '0')&&($is_pb_pending_grading === false)) {
                     $courseplan->coursepassedidentifier = 'course_fail_pb';
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
                     $courseplan->coursepassedclass = 'ND';                    
