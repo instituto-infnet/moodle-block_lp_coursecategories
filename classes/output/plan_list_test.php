@@ -323,6 +323,7 @@ class plan_list_test implements renderable, templatable {
 
         // Recupera o curso de Projeto de Bloco
         $mainBlockCourse = $this->getMainBlockCourse($categoryid);
+        var_dump($mainBlockCourse);
         
         $courseYearLimit = false;
         if ($mainBlockCourse && isset($mainBlockCourse->course_start_date)) {
@@ -368,6 +369,12 @@ class plan_list_test implements renderable, templatable {
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
                     $courseplan->coursepassedclass = 'ND';                    
                 }
+            }
+            
+            if($mainBlockCourse->attendanceidentifier === 'course_attendance_insufficient'){
+                $courseplan->coursepassedidentifier = 'course_fail_pb';
+                $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
+                $courseplan->coursepassedclass = 'ND'; 
             }
         }
 

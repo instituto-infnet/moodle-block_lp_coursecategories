@@ -364,6 +364,12 @@ class plan_list implements renderable, templatable {
                     $courseplan->coursepassedclass = 'ND';                    
                 }
             }
+                        
+            if($mainBlockCourse->attendanceidentifier === 'course_attendance_insufficient'){
+                $courseplan->coursepassedidentifier = 'course_fail_pb';
+                $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
+                $courseplan->coursepassedclass = 'ND'; 
+            }
         }
 
         return $courseplan;
