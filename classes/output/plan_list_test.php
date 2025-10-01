@@ -370,8 +370,8 @@ class plan_list_test implements renderable, templatable {
                     $courseplan->coursepassedclass = 'ND';                    
                 }
             }
-            
-            if($mainBlockCourse->attendanceidentifier === 'course_attendance_insufficient'){
+
+            if((string)$mainBlockCourse->ongoing === '0' && (string)$mainBlockCourse->attendanceidentifier === 'course_attendance_insufficient' && $is_pb_pending_grading === false){
                 $courseplan->coursepassedidentifier = 'course_fail_pb';
                 $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
                 $courseplan->coursepassedclass = 'ND'; 
