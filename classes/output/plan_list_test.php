@@ -873,9 +873,11 @@ class plan_list_test implements renderable, templatable {
             if ($currentDate >= $start_date && $currentDate <= $end_date) {
                 $status = "Cursando";
                 $statusbadge = "blue";
+                $course->finalgrade = '-';
             } elseif ($currentDate < $start_date) {
                 $status = "Não iniciado";
                 $statusbadge = "blue";
+                $course->finalgrade = '-';
             } elseif ($course->finalgrade >= 75) {
                 $status = "Aprovado";
                 $statusbadge = "green";
@@ -883,6 +885,7 @@ class plan_list_test implements renderable, templatable {
             } else {
                 $status = "Não aprovado";
                 $statusbadge = "red";
+                $course->finalgrade = '-';
             }
             $course->status = $status;
             $course->statusbadge = $statusbadge;           
