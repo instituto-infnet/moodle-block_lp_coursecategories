@@ -10,7 +10,8 @@
     color: inherit;
 }
 
-.block_lp_coursecategories a[data-toggle=collapse]:hover, .block_lp_coursecategories a[data-toggle=collapse]:focus {
+.block_lp_coursecategories a[data-toggle=collapse]:hover,
+.block_lp_coursecategories a[data-toggle=collapse]:focus {
     text-decoration: inherit;
 }
 
@@ -22,7 +23,7 @@
     padding: 24px 16px;
     border-radius: 2px;
     background: #fff;
-    box-shadow: 0 10px 20px rgba(0,0,0,.19), 0 6px 6px rgba(0,0,0,.23);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, .19), 0 6px 6px rgba(0, 0, 0, .23);
     margin-bottom: 24px;
     margin-top: 8px;
     border-top: 5px solid #2ABFD4;
@@ -69,7 +70,7 @@
 
 .lp-course-categories-full-report-category-header h3,
 .lp-course-categories-full-report-course-header h4,
-.block_lp_coursecategories .plancategory{
+.block_lp_coursecategories .plancategory {
     display: block;
 }
 
@@ -230,4 +231,18 @@
 /* hack para esta tela */
 .block_lp_coursecategories .pl-alert {
     margin: 16px 0;
+}
+
+/* Section headers for undergraduate and postgraduate */
+.lp-section-header {
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #ccc;
+}
+
+.lp-section-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.4em;
+    font-weight: 400;
 }

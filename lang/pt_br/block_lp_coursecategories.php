@@ -62,7 +62,7 @@ $string['sem_planos'] = 'Você não possui planos de aprendizado';
 $string['ext_title'] = 'Atividades de Extensão';
 $string['ele_title'] = 'Disciplinas Eletivas';
 $string['status'] = 'Status';
-$string['data'] = 'Trimestre';
+$string['data'] = 'Trimestre(s)';
 $string['effective_hours'] = 'Horas Efetivas';
 $string['total_hours'] = 'Total de Horas aprovadas';
 $string['hours'] = 'horas';
@@ -72,3 +72,7 @@ $string['credit_hours'] = 'Carga Horária';
 
 // REAVALIAÇÃO DE DISCIPLINAS
 $string['at_title'] = 'Reavaliações de Disciplinas';
+
+// GRADUAÇÃO E PÓS-GRADUAÇÃO
+$string['undergraduate_title'] = 'Blocos de Graduação';
+$string['postgraduate_title'] = 'Blocos de Pós-Graduação';

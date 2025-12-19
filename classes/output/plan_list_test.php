@@ -72,7 +72,7 @@ class plan_list_test implements renderable, templatable {
     /** @var stdClass O usuário. */
     protected $user;
 
-    protected $yearLimit = 2024;
+    protected $yearLimit = 2025;
 
     /**
      * Construtor.
@@ -87,7 +87,7 @@ class plan_list_test implements renderable, templatable {
 
         // Obter as categorias de cursos de cada plano.
         $this->plansqueryresult = $this->get_plan_course_categories($user->id);
-          
+        
         // Obter as categorias de cursos de cada plano.
         $this->extensionplansqueryresult = $this->get_plan_extension_course_categories();
         
@@ -133,7 +133,7 @@ class plan_list_test implements renderable, templatable {
 
         foreach ($this->plansqueryresult as $courseplan) {
             $courseplan = $this->set_plan_category($courseplan, $output);
-
+            
             if ($this->plancategories[$courseplan->category2id]->distance === false) {
                 $courseplan = $this->set_attendance_data($courseplan);
             }
@@ -232,7 +232,7 @@ class plan_list_test implements renderable, templatable {
         $competenciesok = $courseplan->competenciesok;        
         $userid = $this->user->id;
         $courseid = $courseplan->courseid;
-
+        
         /* Course competencies string */
         $courseplan->competenciescompletedstring = get_string('competencies_completed_' . $competenciesok, 'block_lp_coursecategories');
 
@@ -323,7 +323,6 @@ class plan_list_test implements renderable, templatable {
 
         // Recupera o curso de Projeto de Bloco
         $mainBlockCourse = $this->getMainBlockCourse($categoryid);
-        var_dump($mainBlockCourse);
         
         $courseYearLimit = false;
         if ($mainBlockCourse && isset($mainBlockCourse->course_start_date)) {
@@ -331,8 +330,8 @@ class plan_list_test implements renderable, templatable {
             if ($date) {
                 $courseYearLimit = intval($date->format('Y')) >= $this->yearLimit;
             }
-
-            $is_pb_pending_grading = $this->has_pending_assessment_grading($mainBlockCourse->courseid, $userid); 
+            
+            $is_pb_pending_grading = $this->has_pending_assessment_grading($mainBlockCourse->courseid, $userid);
         }
 
         $isProjetoDeBloco = false;
@@ -355,9 +354,9 @@ class plan_list_test implements renderable, templatable {
             $this->plancategories[$category2id]->categories[$categoryid]->categorycomplete = 'categoryincomplete';
             $this->plancategories[$category2id]->categories[$categoryid]->categorycompleteclass = 'ND';
         }        
-       
+        
         if($mainBlockCourse && $courseYearLimit === true && $isProjetoDeBloco === false) {
-            if($courseplan->coursepassedidentifier === "course_passed_yes") {
+            if($courseplan->coursepassedidentifier === "course_passed_yes"){
                 if((string)$mainBlockCourse->ongoing === '1' || $is_pb_pending_grading === true){
                     $courseplan->coursepassedidentifier = 'course_passed_ongoing_pb';
                     $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
@@ -370,7 +369,7 @@ class plan_list_test implements renderable, templatable {
                     $courseplan->coursepassedclass = 'ND';                    
                 }
             }
-
+            
             if((string)$mainBlockCourse->ongoing === '0' && (string)$mainBlockCourse->attendanceidentifier === 'course_attendance_insufficient' && $is_pb_pending_grading === false){
                 $courseplan->coursepassedidentifier = 'course_fail_pb';
                 $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
@@ -498,6 +497,13 @@ class plan_list_test implements renderable, templatable {
                             WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 7 AND 9 THEN '3T'
                             WHEN MONTH(FROM_UNIXTIME(c.startdate)) BETWEEN 10 AND 12 THEN '4T'
                         END) AS Trimester,
+                    CONCAT(YEAR(FROM_UNIXTIME(c.enddate)), '.', 
+                        CASE 
+                            WHEN MONTH(FROM_UNIXTIME(c.enddate)) BETWEEN 1 AND 3 THEN '1T'
+                            WHEN MONTH(FROM_UNIXTIME(c.enddate)) BETWEEN 4 AND 6 THEN '2T'
+                            WHEN MONTH(FROM_UNIXTIME(c.enddate)) BETWEEN 7 AND 9 THEN '3T'
+                            WHEN MONTH(FROM_UNIXTIME(c.enddate)) BETWEEN 10 AND 12 THEN '4T'
+                        END) AS EndTrimester,
                     c.category AS ccategory,
                     cc.id AS categoryid,
                     cc.name AS categoryname,
@@ -517,9 +523,8 @@ class plan_list_test implements renderable, templatable {
                     mdl_course_categories cc ON cc.id = c.category
                 JOIN 
                     mdl_course_categories cc2 ON cc2.id = cc.parent                
-                JOIN 
+                LEFT JOIN 
                     mdl_course_categories cc3 ON cc3.id = cc2.parent
-                    AND cc3.name = 'Eletivas'
                 JOIN 
                     mdl_customfield_data cfd ON cfd.instanceid = c.id
                 JOIN 
@@ -528,6 +533,8 @@ class plan_list_test implements renderable, templatable {
                     ra.userid = ?
                     AND c.fullname NOT LIKE '%Projeto de Bloco I %'
                     AND cff.name = 'Carga horária total'
+                    AND cfd.value IS NOT NULL AND cfd.value != ''
+                    AND (cc3.name = 'Eletivas' OR cc2.name = 'Clube de Programação e Algoritmo')
                 GROUP BY 
                     c.id, cfd.value;
         ";
@@ -662,12 +669,30 @@ class plan_list_test implements renderable, templatable {
                 cc.id categoryid,
                 cc.name categoryname,
                 cc.sortorder categorysortorder,
-                cc2.id category2id,
-                cc2.name category2name,
-                cc3.id category3id,
-                cc3.name category3name,
-                cc4.id category4id,
-                cc4.name category4name,
+                CASE 
+                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc2.id
+                    ELSE cc3.id
+                END category2id,
+                CASE 
+                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc2.name
+                    ELSE cc3.name
+                END category2name,
+                CASE 
+                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc3.id
+                    ELSE cc4.id
+                END category3id,
+                CASE 
+                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc3.name
+                    ELSE cc4.name
+                END category3name,
+                CASE 
+                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc4.id
+                    ELSE cc5.id
+                END category4id,
+                CASE 
+                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc4.name
+                    ELSE cc5.name
+                END category4name,
                 (
                     select COUNT(1)
                     from {course} c2
@@ -693,12 +718,9 @@ class plan_list_test implements renderable, templatable {
                     and r.archetype = 'student'
                 join {course_categories} cc on cc.id = c.category
                 join {course_categories} cc2 on cc2.id = cc.parent
-                    and (
-                        cc2.name like '[GR%'
-                        or cc2.name like '[PG%'
-                    )
                 join {course_categories} cc3 on cc3.id = cc2.parent
                 join {course_categories} cc4 on cc4.id = cc3.parent
+                left join {course_categories} cc5 on cc5.id = cc4.parent
                 left join {competency_coursecomp} ccc on ccc.courseid = c.id
                 left join {competency_usercompcourse} ucc on ucc.competencyid = ccc.competencyid
                     and ucc.userid = ra.userid
@@ -722,6 +744,7 @@ class plan_list_test implements renderable, templatable {
                                 agn.name like '%assessment%'
                                 or agn.name like '%apresentação%'
                                 or agn.name like '%entrega%'
+                                or agn.name like '%projeto%'
                             )
                 ) on cmagn.course = c.id
                 left join (
@@ -733,6 +756,12 @@ class plan_list_test implements renderable, templatable {
                 ) on cmq.course = c.id
             where ra.userid = ?
                 and c.fullname not like '%Projeto de Bloco I %'
+                and (
+                    cc2.name like '[GR%'
+                    or cc2.name like '[PG%'
+                    or cc3.name like '[GR%'
+                    or cc3.name like '[PG%'
+                )
             group by c.id
             ;
         ", array($this->user->id));
@@ -888,7 +917,12 @@ class plan_list_test implements renderable, templatable {
                 $course->finalgrade = '-';
             }
             $course->status = $status;
-            $course->statusbadge = $statusbadge;           
+            $course->statusbadge = $statusbadge;
+            
+            // Set trimester display - show range if start and end trimesters are different
+            if (isset($course->endtrimester) && $course->trimester !== $course->endtrimester) {
+                $course->trimester = $course->trimester . '/' . $course->endtrimester;
+            }
         }
         
         return $coursesdata;
@@ -905,12 +939,10 @@ class plan_list_test implements renderable, templatable {
 
     private function get_exported_data($output) {
         $sortedcategories = array();
+        $undergraduatecategories = array();
+        $postgraduatecategories = array();
+        
         foreach ($this->plancategories as $plancategory) {
-            // Removido para não separar os blocos por classe,
-            // mantido para o caso de ser necessário voltar
-            // $sortedcategories = array_values($plancategory->categories);
-            // usort($sortedcategories, array($this, "compare_categories_order"));
-
             foreach ($plancategory->categories as $category) {
                 $category->categorycompletestring = get_string($category->categorycomplete, 'block_lp_coursecategories');
 
@@ -926,15 +958,19 @@ class plan_list_test implements renderable, templatable {
                 }
 
                 $sortedcategories[] = $category;
+                
+                // Separate undergraduate (GRL) and postgraduate (PGLL) categories
+                if (preg_match('/\[GR/', $category->category2name) === 1) {
+                    $undergraduatecategories[] = $category;
+                } else if (preg_match('/\[PG/', $category->category2name) === 1) {
+                    $postgraduatecategories[] = $category;
+                }
             }
-
-            // Removido para não separar os blocos por classe,
-            // mantido para o caso de ser necessário voltar
-            // $plancategory->categories = $sortedcategories;
-            // $sortedcategories2[] = $plancategory;
         }
 
         usort($sortedcategories, array($this, "compare_categories_order"));
+        usort($undergraduatecategories, array($this, "compare_categories_order"));
+        usort($postgraduatecategories, array($this, "compare_categories_order"));
 
         global $USER;
 
@@ -962,6 +998,8 @@ class plan_list_test implements renderable, templatable {
         
         return array(
             'hasplans' => !empty($this->plansqueryresult),
+            'hasundergraduateplans' => !empty($undergraduatecategories),
+            'haspostgraduateplans' => !empty($postgraduatecategories),
             'hasextensionplans' => !empty($extension_plans),            
             'extensionplans' => $extension_plans_final,
             'haselectiveplans' => !empty($elective_plans),            
@@ -972,6 +1010,8 @@ class plan_list_test implements renderable, templatable {
             'extensiontotalhours' => $extension_total_hours,
             'electivetotalhours' => $elective_total_hours,
             'plancategories' => $sortedcategories,
+            'undergraduatecategories' => $undergraduatecategories,
+            'postgraduatecategories' => $postgraduatecategories,
             'user' => $this->user,
             'cpf' => $this->format_cpf($this->user->profile_field_matricula),
             'category2name' => $plancategory->categoryname,

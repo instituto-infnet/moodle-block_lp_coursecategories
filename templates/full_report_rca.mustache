@@ -40,13 +40,17 @@
         </table>
     </div>
 {{/user}}
-{{#hasplans}}
+
+{{#hasundergraduateplans}}
     <div class="lp-course-categories-warp">
+        <div class="lp-section-header">
+            <h2>{{#str}}undergraduate_title, block_lp_coursecategories{{/str}}</h2>
+        </div>
         <div class="collapsible-actions">
             <a href="javascript:" class="expandall">{{#str}}expandall{{/str}}</a>
             <a href="javascript:" class="collapseall hidden">{{#str}}collapseall{{/str}}</a>
         </div>
-        {{#plancategories}}
+        {{#undergraduatecategories}}
             <div class="lp-course-categories-full-report-category">
                 <div class="lp-course-categories-full-report-category-header">
                     <h3>
@@ -144,9 +148,116 @@
                     {{category2name}}
                 </p>
             </div>
-        {{/plancategories}}
+        {{/undergraduatecategories}}
+    </div>           
+{{/hasundergraduateplans}}
+
+{{#hasextensionplans}}
+    <style>
+        .container-table{
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .right{
+            text-align: right;
+            padding-right: 20px;
+            margin-top: 30px;
+        }
+
+        .opacity {
+            opacity: 0.7;
+        }
+
+        .inline {
+            display: inline !important;
+        }
+
+        .badge-green {
+            background-color: #8BC34A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-blue {
+            background-color: #003F7A;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .badge-red {
+            background-color: #FF0000;
+            color: white;
+            padding: 4px 8px;
+            text-align: center;
+            border-radius: 5px;
+        }
+    </style>    
+    <div class="lp-course-categories-warp">
+        <div class="lp-course-categories-full-report-category">
+            <div class="lp-course-categories-full-report-category-header">
+                <h3 class="inline">
+                    {{#str}}ext_title, block_lp_coursecategories{{/str}}                                      
+                </h3>
+                 - {{description}}
+            </div>
+            <div class="container-table">
+                <table>
+                    <tr>
+                        <th></th>
+                        <th class="center">
+                            {{#str}}status, block_lp_coursecategories{{/str}}
+                        </th>
+                        <th class="center">
+                            {{#str}}data, block_lp_coursecategories{{/str}}
+                        </th>
+                        <th class="center">
+                            {{#str}}effective_hours, block_lp_coursecategories{{/str}}
+                        </th>
+                    </tr>
+                    {{#extensionplans}}
+                        <tr>
+                            <td>
+                                <h4 class="opacity">{{coursename}}</h4>
+                            </td>
+                            <td class="center">
+                                <span class="badge-{{statusbadge}}">{{status}}</span>
+                            </td>
+                            <td class="center">{{trimester}}</td>
+                            <td class="center">
+                                <b>{{finalgrade}}</b>
+                            </td>
+                        </tr>
+                    {{/extensionplans}}                     
+                </table>    
+                {{#extensiontotalhours}}
+                    <h3 class="right">                        
+                        {{#str}}total_hours, block_lp_coursecategories{{/str}}: {{extensiontotalhours}} {{#str}}hours, block_lp_coursecategories{{/str}}.
+                    </h3>                    
+                {{/extensiontotalhours}} 
+            </div>
+        </div>
     </div>    
-{{/hasplans}}
+{{/hasextensionplans}}
 
 {{#hasreassessmentplans}}
     <style>
@@ -437,131 +548,143 @@
     </div>    
 {{/haselectiveplans}}
 
-{{#hasextensionplans}}
-    <style>
-        .container-table{
-            margin-left: 20px;
-            margin-right: 20px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .center {
-            text-align: center;
-        }
-
-        .right{
-            text-align: right;
-            padding-right: 20px;
-            margin-top: 30px;
-        }
-
-        .opacity {
-            opacity: 0.7;
-        }
-
-        .inline {
-            display: inline !important;
-        }
-
-        .badge-green {
-            background-color: #8BC34A;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-
-        .badge-blue {
-            background-color: #003F7A;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-
-        .badge-red {
-            background-color: #FF0000;
-            color: white;
-            padding: 4px 8px;
-            text-align: center;
-            border-radius: 5px;
-        }
-    </style>    
+{{#haspostgraduateplans}}
     <div class="lp-course-categories-warp">
-        <div class="lp-course-categories-full-report-category">
-            <div class="lp-course-categories-full-report-category-header">
-                <h3 class="inline">
-                    {{#str}}ext_title, block_lp_coursecategories{{/str}}                                      
-                </h3>
-                 - {{description}}
-            </div>
-            <div class="container-table">
-                <table>
-                    <tr>
-                        <th></th>
-                        <th class="center">
-                            {{#str}}status, block_lp_coursecategories{{/str}}
-                        </th>
-                        <th class="center">
-                            {{#str}}data, block_lp_coursecategories{{/str}}
-                        </th>
-                        <th class="center">
-                            {{#str}}effective_hours, block_lp_coursecategories{{/str}}
-                        </th>
-                    </tr>
-                    {{#extensionplans}}
-                        <tr>
-                            <td>
-                                <h4 class="opacity">{{coursename}}</h4>
-                            </td>
-                            <td class="center">
-                                <span class="badge-{{statusbadge}}">{{status}}</span>
-                            </td>
-                            <td class="center">{{trimester}}</td>
-                            <td class="center">
-                                <b>{{finalgrade}}</b>
-                            </td>
-                        </tr>
-                    {{/extensionplans}}                     
-                </table>    
-                {{#extensiontotalhours}}
-                    <h3 class="right">                        
-                        {{#str}}total_hours, block_lp_coursecategories{{/str}}: {{extensiontotalhours}} {{#str}}hours, block_lp_coursecategories{{/str}}.
-                    </h3>                    
-                {{/extensiontotalhours}} 
-            </div>
+        <div class="lp-section-header">
+            <h2>{{#str}}postgraduate_title, block_lp_coursecategories{{/str}}</h2>
         </div>
-    </div>    
-{{/hasextensionplans}}
+        <div class="collapsible-actions">
+            <a href="javascript:" class="expandall-pg">{{#str}}expandall{{/str}}</a>
+            <a href="javascript:" class="collapseall-pg hidden">{{#str}}collapseall{{/str}}</a>
+        </div>
+        {{#postgraduatecategories}}
+            <div class="lp-course-categories-full-report-category">
+                <div class="lp-course-categories-full-report-category-header">
+                    <h3>
+                        {{#str}}category, block_lp_coursecategories{{/str}}:
+                        {{{categoryname}}}
+                        <span class="label {{categorycompleteclass}}">{{categorycompletestring}}</span>
+                    </h3>
+                </div>
 
+                <div id="collapsePlanCategoryPG{{categoryid}}">
+                {{#plans}}
+                    <div class="lp-course-categories-full-report-course">
+                        <div class="lp-course-categories-full-report-course-header collapsed" data-toggle="collapse" data-target="#collapsePlanPG{{courseid}}">
+                            <h4>
+                                {{#str}}course, block_lp_coursecategories{{/str}}
+                                {{planindexincategory}}: {{{coursename}}}
+                                <br />
+                                <span class="label {{coursepassedclass}}">{{coursepassedstring}}</span>
+                            </h4>
+                            {{#showstatistics}}
+                                {{#statistics}}
+                                {{> tool_lp/course_competency_statistics}}
+                                {{/statistics}}
+                            {{/showstatistics}}
+                        </div>
+
+                        <div id="collapsePlanPG{{courseid}}" class="lp-course-categories-full-report-course-competencies collapse">
+                            <p class="lp-course-categories-full-report-category-grey">
+                                {{#str}} course_id_number, block_lp_coursecategories {{/str}}: {{courseidnumber}}
+                            </p>
+                            {{competenciescompletedstring}}
+                            <br />
+                            {{^distance}}
+                                {{attendancestring}}
+                            {{/distance}}
+                            <!-- Competências -->
+                            <div class="lp-course-categories-full-report-course-competencies-tree">
+                                <ul>
+                                {{#coursecompetencies}}
+                                {{#competencies}}
+                                    <li data-id="{{competency.id}}" class="clearfix">
+                                        <span class="competency-name">
+                                        {{#competency}}
+                                            <a href="{{lpbaseurl}}user_competency_in_course.php?courseid={{courseid}}&competencyid={{competency.id}}&userid={{gradableuserid}}"
+                                               id="competency-info-link-{{competency.id}}"
+                                               title="{{#str}}viewdetails, tool_lp{{/str}}">
+                                            {{competency.idnumber}}. {{{competency.description}}}
+                                            </a>
+                                        </span>
+                                        {{/competency}}
+
+                                        <span class="competency-grade">
+                                        {{#usercompetencycourse}}
+                                        {{#grade}}
+                                            <span class="tag tag-info {{gradename}}">{{gradename}}</span>
+                                        {{/grade}}
+                                        {{/usercompetencycourse}}
+                                        </span>
+                                    </li>
+                                {{/competencies}}
+                                {{^competencies}}
+                                <p class="alert alert-info">
+                                    {{#str}}nocompetenciesincourse, tool_lp{{/str}}
+                                </p>
+                                {{/competencies}}
+                                {{/coursecompetencies}}
+                                {{^coursecompetencies}}
+                                <p class="alert alert-info">
+                                    {{#str}}nocompetenciesincourse, tool_lp{{/str}}
+                                </p>
+                                {{/coursecompetencies}}
+                                </ul>
+                            </div>
+                            <!-- Tarefa -->
+                            <div class="lp-course-categories-full-report-course-competencies-task">
+                                <p>
+                                {{^coursemodules}}
+                                {{/coursemodules}}
+                                {{#coursemodules.0}}
+                                    <span class="fa fa-info-circle" aria-hidden="true"></span>
+                                    As competências desta disciplina são avaliadas em
+                                {{/coursemodules.0}}
+                                {{#coursemodules}}
+                                    <a href="{{url}}" class="competency_activities_avaliable">{{name}}</a>{{^lastitem}}, {{/lastitem}}
+                                {{/coursemodules}}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {{/plans}}
+                </div>
+                <p class="lp-course-categories-full-report-category-grey">
+                    {{#str}}category2_category_description, block_lp_coursecategories{{/str}}:
+                    {{category2name}}
+                </p>
+            </div>
+        {{/postgraduatecategories}}
+    </div>           
+{{/haspostgraduateplans}}
+
+{{#hasplans}}    
+    <p class="pl-alert warning">
+    {{#str}}full_report_warning, block_lp_coursecategories{{/str}}
+    </p>
+{{/hasplans}}
 {{^hasplans}}
     <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>
 {{/hasplans}}
+{{^hasextensionplans}}
+    <p>{{#str}}sem_planos, block_lp_coursecategories{{/str}}</p>
+{{/hasextensionplans}}
 </div>
 
 {{#js}}
-function getCollapsibleActionsAnchors() {
+function getCollapsibleActionsAnchors(selector) {
     return Array.from(
-        document.querySelectorAll('.block_lp_coursecategories .collapsible-actions a')
+        document.querySelectorAll(selector)
     );
 };
 
-function collapsibleActionsToggle(event) {
+function collapsibleActionsToggle(event, containerSelector) {
     var selectors = [
-        '.lp-course-categories-full-report-course-header'
+        containerSelector + ' .lp-course-categories-full-report-course-header'
     ];
 
-    var selectorEnding = (event.target.classList.contains('expandall')) ? '.collapsed' : ':not(.collapsed)';
+    var isExpand = event.target.classList.contains('expandall') || event.target.classList.contains('expandall-pg');
+    var selectorEnding = isExpand ? '.collapsed' : ':not(.collapsed)';
 
     for (var i = 0; i < selectors.length; i++) {
         selectors[i] += selectorEnding;
@@ -569,11 +692,27 @@ function collapsibleActionsToggle(event) {
 
     Array.from(document.querySelectorAll(selectors.join(', '))).forEach(header => header.click());
 
-    getCollapsibleActionsAnchors().forEach(anchor => anchor.classList.toggle('hidden'));
+    // Toggle visibility of expand/collapse links within the same container
+    var container = event.target.closest('.lp-course-categories-warp');
+    if (container) {
+        container.querySelectorAll('.collapsible-actions a').forEach(anchor => anchor.classList.toggle('hidden'));
+    }
 };
 
 function addCollapsibleActionsListener() {
-    getCollapsibleActionsAnchors().forEach(anchor => anchor.onclick = collapsibleActionsToggle);
+    // Undergraduate expand/collapse
+    getCollapsibleActionsAnchors('.block_lp_coursecategories .collapsible-actions .expandall, .block_lp_coursecategories .collapsible-actions .collapseall').forEach(anchor => {
+        anchor.onclick = function(event) {
+            collapsibleActionsToggle(event, '.lp-course-categories-warp:has(.expandall)');
+        };
+    });
+    
+    // Postgraduate expand/collapse
+    getCollapsibleActionsAnchors('.block_lp_coursecategories .collapsible-actions .expandall-pg, .block_lp_coursecategories .collapsible-actions .collapseall-pg').forEach(anchor => {
+        anchor.onclick = function(event) {
+            collapsibleActionsToggle(event, '.lp-course-categories-warp:has(.expandall-pg)');
+        };
+    });
 };
 
 addCollapsibleActionsListener();
@@ -596,3 +735,4 @@ addCollapsibleActionsListener();
         });
     });
 {{/js}}
+

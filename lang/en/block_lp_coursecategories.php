@@ -72,3 +72,7 @@ $string['credit_hours'] = 'Credit Hours';
 
 // REAVALIAÇÃO DE DISCIPLINAS
 $string['at_title'] = 'Reassessment of Disciplines';
+
+// UNDERGRADUATE AND POSTGRADUATE
+$string['undergraduate_title'] = 'Undergraduate Courses';
+$string['postgraduate_title'] = 'Postgraduate Courses';
