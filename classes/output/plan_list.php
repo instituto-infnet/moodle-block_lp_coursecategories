@@ -552,7 +552,10 @@ class plan_list implements renderable, templatable {
                     cc.sortorder AS categorysortorder,
                     cc2.id AS category2id,
                     cc2.name AS category2name,
-                    cc2.description AS category2description                    
+                    cc2.description AS category2description,                    
+                    cc3.id AS category3id,
+                    cc3.name AS category3name,
+                    cc3.description AS category3description
                 FROM 
                     mdl_course c
                 JOIN 
@@ -567,13 +570,15 @@ class plan_list implements renderable, templatable {
                     mdl_course_categories cc ON cc.id = c.category
                 JOIN 
                     mdl_course_categories cc2 ON cc2.id = cc.parent
-                    AND cc2.name LIKE 'Reavaliação de Disciplinas%'                    
+                JOIN 
+                    mdl_course_categories cc3 ON cc3.id = cc2.parent
+                    AND cc3.name LIKE 'Reavaliação de Disciplinas%'                    
                 WHERE 
                     ra.userid = ?
                     AND c.fullname NOT LIKE '%Projeto de Bloco I %'
                 GROUP BY 
                     c.id;
-        ";
+                ";
         
         return($DB->get_records_sql($sql, array($this->user->id)));
     }    
