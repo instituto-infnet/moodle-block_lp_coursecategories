@@ -583,12 +583,18 @@ class plan_list_test implements renderable, templatable {
                     mdl_course_categories cc ON cc.id = c.category
                 JOIN 
                     mdl_course_categories cc2 ON cc2.id = cc.parent
-                JOIN 
+                LEFT JOIN 
                     mdl_course_categories cc3 ON cc3.id = cc2.parent
-                    AND cc3.name LIKE 'Reavaliação de Disciplinas%'                    
+                LEFT JOIN 
+                    mdl_course_categories cc4 ON cc4.id = cc3.parent
                 WHERE 
                     ra.userid = ?
-                    AND c.fullname NOT LIKE '%Projeto de Bloco I %'
+                    AND c.fullname NOT LIKE '%Projeto de Bloco I %'                    
+                    AND (
+                        cc2.name LIKE 'Reavaliação de Disciplinas%'
+                        OR cc3.name LIKE 'Reavaliação de Disciplinas%'
+                        OR cc4.name LIKE 'Reavaliação de Disciplinas%'
+                    )
                 GROUP BY 
                     c.id;
         ";
@@ -992,11 +998,12 @@ class plan_list_test implements renderable, templatable {
         // Reassessment Course (reavaliação)
         $reassessment_plans = array_values($this->reassessmentplansqueryresult);        
         $reassessment_plans_final = $this->get_reassessment_course_grades($reassessment_plans); 
-        var_dump($reassessment_plans, $reassessment_plans_final);exit();
         $rootUrl = "https://lms.infnet.edu.br/moodle/mod/assign/view.php?id=";
         foreach ($reassessment_plans_final as $reassessment_plan) {            
             $reassessment_plan->assessment_assign = $this->get_assessment_assignment_data($reassessment_plan->courseid);
-            $reassessment_plan->assessment_assign->url = $rootUrl . $reassessment_plan->assessment_assign->cmid;
+            if (!empty($reassessment_plan->assessment_assign)) {
+                $reassessment_plan->assessment_assign->url = $rootUrl . $reassessment_plan->assessment_assign->cmid;
+            }
             $reassessment_plan->externalgrade = $this->get_reassessment_external_grade($reassessment_plan->currentgrades);
         }    
         // var_dump($reassessment_plans_final);exit();
