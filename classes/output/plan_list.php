@@ -174,8 +174,8 @@ class plan_list implements renderable, templatable {
 
         if (isset($attendancesummary)) {
             $allsessionssummary = $attendancesummary->get_all_sessions_summary_for($this->user->id);
-            $courseplan->attendance = $this->get_attendance_percentage($allsessionssummary);
-            $courseplan->attendanceformatted = number_format($courseplan->attendance * 100, 1, ',', null) . '%';
+            $courseplan->attendance = $allsessionssummary->takensessionspercentage; 
+            $courseplan->attendanceformatted = $allsessionssummary->percentagesessionscompleted;            
         }
 
         return $courseplan;
@@ -383,25 +383,7 @@ class plan_list implements renderable, templatable {
         }
         return null;
     }
-
-    private function get_attendance_percentage($allsessionssummary) {
-        $numallsessions = $allsessionssummary->numallsessions;
-        $sessionsbyacronym = array_pop($allsessionssummary->userstakensessionsbyacronym);
-
-        $absentsessions = 0;
-        $latesessions = 0;
-
-        if (isset($sessionsbyacronym['Au'])) {
-            $absentsessions = $sessionsbyacronym['Au'];
-        }
-
-        if (isset($sessionsbyacronym['At'])) {
-            $latesessions = $sessionsbyacronym['At'];
-        }
-
-        return ($numallsessions - $absentsessions - floor($latesessions / 2)) / $numallsessions;
-    }
-
+    
     private function get_reassessment_external_grade($competencies) {
         $grade = 0;
         $coursepassed = true;
