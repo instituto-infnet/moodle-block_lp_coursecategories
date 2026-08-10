@@ -46,6 +46,7 @@ $string['course_passed_no_attendance'] = 'Failed by competencies';
 $string['course_passed_no_competencies'] = 'Failed by attendance';
 $string['course_fail_pb'] = 'Failed by Block Project';
 $string['course_passed_plagiarism'] = 'Disapproved by plagiarism';
+$string['course_passed_enrolment_suspended'] = 'Enrolment suspended';
 $string['course_passed_ongoing'] = 'Ongoing';
 $string['course_passed_ongoing_pb'] = 'Pending approval of the Block Project';
 $string['course_passed_yes'] = 'Passed';

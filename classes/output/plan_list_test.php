@@ -257,7 +257,10 @@ class plan_list_test implements renderable, templatable {
         /* Course passed string and class */
         $coursepassedidentifier = 'course_passed_';
 
-        if (
+        if (!empty($courseplan->enrolmentsuspended)) {
+            $coursepassedidentifier .= 'enrolment_suspended';
+            $courseplan->coursepassedclass = 'ND';
+        } else if (
             $courseplan->visible != 1
             || $courseplan->ongoing == 1 
         ) {
@@ -673,6 +676,14 @@ class plan_list_test implements renderable, templatable {
                 acga.approved legacyattendanceok,
                 cmatt.id attendancecmid,
                 att.id attendanceid,
+                EXISTS (
+                    SELECT 1
+                    FROM {user_enrolments} ue
+                    JOIN {enrol} e ON e.id = ue.enrolid
+                    WHERE ue.userid = ra.userid
+                        AND e.courseid = c.id
+                        AND ue.status = 1
+                ) enrolmentsuspended,
                 case
                     when MIN(ucc.grade) is null
                         and GREATEST(MAX(COALESCE(agn.cutoffdate,0)), MAX(COALESCE(q.timeclose,0))) + 10 > UNIX_TIMESTAMP()

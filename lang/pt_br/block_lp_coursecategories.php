@@ -46,6 +46,7 @@ $string['course_passed_no_attendance'] = 'Reprovado por frequência';
 $string['course_passed_no_competencies'] = 'Reprovado por aproveitamento';
 $string['course_fail_pb'] = 'Reprovado pelo Projeto de Bloco';
 $string['course_passed_plagiarism'] = 'Reprovado por plágio';
+$string['course_passed_enrolment_suspended'] = 'Inscrição suspensa';
 $string['course_passed_ongoing'] = 'Em andamento';
 $string['course_passed_ongoing_pb'] = 'Aprovação pendente do Projeto de Bloco';
 $string['course_passed_yes'] = 'Aprovado';
