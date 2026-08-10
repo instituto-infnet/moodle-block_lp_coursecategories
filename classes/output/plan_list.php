@@ -129,9 +129,10 @@ class plan_list implements renderable, templatable {
         foreach ($this->plansqueryresult as $courseplan) {
             $courseplan = $this->set_plan_category($courseplan, $output);
 
-            if ($this->plancategories[$courseplan->category2id]->distance === false) {
-                $courseplan = $this->set_attendance_data($courseplan);
-            }
+            // if ($this->plancategories[$courseplan->category2id]->distance === false) {
+            //     $courseplan = $this->set_attendance_data($courseplan);
+            // }
+            $courseplan = $this->set_attendance_data($courseplan);
 
             $courseplan = $this->set_completed($courseplan);
 
@@ -269,7 +270,10 @@ class plan_list implements renderable, templatable {
         } else if (
             $competenciesok == 1
             && (
-                $this->plancategories[$category2id]->distance === true
+                (
+                    $this->plancategories[$category2id]->distance === true
+                    && $attendanceidentifier === 'course_attendance_no_data'
+                )
                 || $attendanceidentifier === 'course_attendance_ok'
             )
         ) {
@@ -277,7 +281,7 @@ class plan_list implements renderable, templatable {
             $courseplan->coursepassedclass = 'D';
         } else if ($competenciesok == 0) { 
             $coursepassedidentifier .= 'no_competencies';
-        } else if ($this->plancategories[$category2id]->distance === false) {
+        } else {
             if ($attendanceidentifier === 'course_attendance_no_data') {
                 $coursepassedidentifier = $attendanceidentifier; 
                 $courseplan->coursepassedclass = '';
@@ -418,9 +422,12 @@ class plan_list implements renderable, templatable {
         if (
             $plan->coursepassedidentifier === 'course_passed_ongoing'
             || count($plan->coursecompetencies->competencies) === 0
-            || (
-                $plan->distance !== true
-                && $plan->attendanceidentifier !== 'course_attendance_ok'
+            || !(
+                (
+                    $plan->distance === true
+                    && $plan->attendanceidentifier === 'course_attendance_no_data'
+                )
+                || $plan->attendanceidentifier === 'course_attendance_ok'
             )
         ) {
             return get_string('notrated', 'report_competency');
