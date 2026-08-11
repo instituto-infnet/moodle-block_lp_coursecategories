@@ -229,6 +229,7 @@ class plan_list implements renderable, templatable {
         $competenciesok = $courseplan->competenciesok;        
         $userid = $this->user->id;
         $courseid = $courseplan->courseid;
+        $distanceattendanceexempt = $this->is_distance_course_attendance_exempt($courseplan);
 
         /* Course competencies string */
         $courseplan->competenciescompletedstring = get_string('competencies_completed_' . $competenciesok, 'block_lp_coursecategories');
@@ -274,7 +275,8 @@ class plan_list implements renderable, templatable {
         } else if (
             $competenciesok == 1
             && (
-                (
+                $distanceattendanceexempt
+                || (
                     $this->plancategories[$category2id]->distance === true
                     && $attendanceidentifier === 'course_attendance_no_data'
                 )
@@ -427,7 +429,8 @@ class plan_list implements renderable, templatable {
             $plan->coursepassedidentifier === 'course_passed_ongoing'
             || count($plan->coursecompetencies->competencies) === 0
             || !(
-                (
+                $this->is_distance_course_attendance_exempt($plan)
+                || (
                     $plan->distance === true
                     && $plan->attendanceidentifier === 'course_attendance_no_data'
                 )
@@ -465,6 +468,12 @@ class plan_list implements renderable, templatable {
         }
 
         return round($grade);
+    }
+
+    private function is_distance_course_attendance_exempt($courseplan) {
+        return $courseplan->distance === true
+            && isset($courseplan->trimester)
+            && $courseplan->trimester < '2026.3T';
     }
 
     private function get_plan_elective_course_categories() {
@@ -703,6 +712,14 @@ class plan_list implements renderable, templatable {
                 acga.approved legacyattendanceok,
                 cmatt.id attendancecmid,
                 att.id attendanceid,
+                EXISTS (
+                    SELECT 1
+                    FROM {user_enrolments} ue
+                    JOIN {enrol} e ON e.id = ue.enrolid
+                    WHERE ue.userid = ra.userid
+                        AND e.courseid = c.id
+                        AND ue.status = 1
+                ) enrolmentsuspended,
                 case
                     when MIN(ucc.grade) is null
                         and GREATEST(MAX(COALESCE(agn.cutoffdate,0)), MAX(COALESCE(q.timeclose,0))) + 10 > UNIX_TIMESTAMP()
