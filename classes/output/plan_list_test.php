@@ -475,7 +475,7 @@ class plan_list_test implements renderable, templatable {
             && isset($courseplan->trimester)
             && $courseplan->trimester < '2026.3T';
     }
-
+    
     private function get_plan_elective_course_categories() {
         global $DB;        
         // Apenas as eletivas com o campo customizado "Infnet/Carga horária total" retornam na consulta abaixo
@@ -522,15 +522,14 @@ class plan_list_test implements renderable, templatable {
                     mdl_course_categories cc2 ON cc2.id = cc.parent                
                 LEFT JOIN 
                     mdl_course_categories cc3 ON cc3.id = cc2.parent
-                JOIN 
+                LEFT JOIN 
+                    mdl_customfield_field cff ON cff.name = 'Carga horária total'
+                LEFT JOIN 
                     mdl_customfield_data cfd ON cfd.instanceid = c.id
-                JOIN 
-                    mdl_customfield_field cff ON cff.id = cfd.fieldid
+                    AND cfd.fieldid = cff.id
                 WHERE 
                     ra.userid = ?
                     AND c.fullname NOT LIKE '%Projeto de Bloco I %'
-                    AND cff.name = 'Carga horária total'
-                    AND cfd.value IS NOT NULL AND cfd.value != ''
                     AND (cc3.name = 'Eletivas' OR cc2.name = 'Clube de Programação e Algoritmo')
                 GROUP BY 
                     c.id, cfd.value;
@@ -896,12 +895,12 @@ class plan_list_test implements renderable, templatable {
                         cfd.value AS cargahorariatotal
                     FROM mdl_grade_items gi
                     LEFT JOIN mdl_grade_grades gg ON gi.id = gg.itemid
+                    LEFT JOIN mdl_customfield_field cff ON cff.name = 'Carga horária total'
                     LEFT JOIN mdl_customfield_data cfd ON cfd.instanceid = gi.courseid
-                    LEFT JOIN mdl_customfield_field cff ON cff.id = cfd.fieldid
+                        AND cfd.fieldid = cff.id
                     WHERE gi.courseid = ?
                     AND gi.itemmodule = 'attendance'
-                    AND gg.userid = ?
-                    AND cff.name = 'Carga horária total'; 
+                    AND gg.userid = ?;
             ";
             $result = reset($DB->get_records_sql($sql, array($course->courseid,$this->user->id)));
             
@@ -911,9 +910,9 @@ class plan_list_test implements renderable, templatable {
             $end_date = \DateTime::createFromFormat('d-m-Y', $course->course_end_date);
             
             // Acrescenta o total de horas lançado do curso            
-            $course->finalgrade = $result->finalgrade ? intval(floatval($result->finalgrade)) : '-';
+            $course->finalgrade = $result && $result->finalgrade ? intval(floatval($result->finalgrade)) : '-';
 
-            $course->cargaHorariaTotal = $result->cargahorariatotal ? intval(floatval($result->cargahorariatotal)) : '-';
+            $course->cargaHorariaTotal = $result && $result->cargahorariatotal ? intval(floatval($result->cargahorariatotal)) : '-';
 
             if ($currentDate >= $start_date && $currentDate <= $end_date) {
                 $status = "Cursando";
