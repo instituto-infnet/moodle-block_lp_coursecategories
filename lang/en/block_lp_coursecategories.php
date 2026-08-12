@@ -70,6 +70,7 @@ $string['hours'] = 'hours';
 
 // CURSOS ELETIVOS
 $string['credit_hours'] = 'Credit Hours';
+$string['open_course_new_tab'] = 'Open course in a new tab';
 
 // REAVALIAÇÃO DE DISCIPLINAS
 $string['at_title'] = 'Reassessment of Disciplines';

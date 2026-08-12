@@ -70,6 +70,7 @@ $string['hours'] = 'horas';
 
 // CURSOS ELETIVOS
 $string['credit_hours'] = 'Carga Horária';
+$string['open_course_new_tab'] = 'Abrir disciplina em uma nova aba';
 
 // REAVALIAÇÃO DE DISCIPLINAS
 $string['at_title'] = 'Reavaliações de Disciplinas';

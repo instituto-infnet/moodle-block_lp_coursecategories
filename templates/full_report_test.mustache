@@ -522,7 +522,14 @@
                     {{#electiveplans}}
                         <tr>
                             <td>
-                                <h4 class="opacity">{{coursename}}</h4>
+                                <h4 class="opacity">
+                                    {{coursename}}
+                                    <a href="{{courseurl}}" target="_blank" rel="noopener"
+                                       title="{{#str}}open_course_new_tab, block_lp_coursecategories{{/str}}"
+                                       aria-label="{{#str}}open_course_new_tab, block_lp_coursecategories{{/str}}">
+                                        <span class="icon fa fa-external-link" aria-hidden="true"></span>
+                                    </a>
+                                </h4>
                             </td>
                             <td class="center">
                                 <span class="badge-{{statusbadge}}">{{status}}</span>

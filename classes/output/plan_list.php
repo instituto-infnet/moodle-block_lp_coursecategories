@@ -996,6 +996,13 @@ class plan_list implements renderable, templatable {
         $elective_plans = array_values($this->electiveplansqueryresult);        
         $elective_plans_final = $this->get_elective_course_grades($elective_plans);
         $elective_total_hours = $this->sum_extension_hours($elective_plans_final);        
+
+        foreach ($elective_plans_final as $elective_plan) {
+            $elective_plan->courseurl = (new \moodle_url(
+                '/course/view.php',
+                array('id' => $elective_plan->courseid)
+            ))->out(false);
+        }
         
         // Reassessment Course (reavaliação)
         $reassessment_plans = array_values($this->reassessmentplansqueryresult);        
