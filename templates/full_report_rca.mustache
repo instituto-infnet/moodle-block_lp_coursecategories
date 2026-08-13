@@ -83,7 +83,7 @@
                             </p>
                             {{competenciescompletedstring}}
                             <br />                            
-                            {{attendancestring}}                            
+                            {{attendancestring}}
                             <!-- Competências -->
                             <div class="lp-course-categories-full-report-course-competencies-tree">
                                 <ul>
@@ -524,7 +524,14 @@
                     {{#electiveplans}}
                         <tr>
                             <td>
-                                <h4 class="opacity">{{coursename}}</h4>
+                                <h4 class="opacity">
+                                    {{coursename}}
+                                    <a href="{{courseurl}}" target="_blank" rel="noopener"
+                                       title="{{#str}}open_course_new_tab, block_lp_coursecategories{{/str}}"
+                                       aria-label="{{#str}}open_course_new_tab, block_lp_coursecategories{{/str}}">
+                                        <span class="icon fa fa-external-link" aria-hidden="true"></span>
+                                    </a>
+                                </h4>
                             </td>
                             <td class="center">
                                 <span class="badge-{{statusbadge}}">{{status}}</span>
@@ -587,7 +594,7 @@
                                 {{#str}} course_id_number, block_lp_coursecategories {{/str}}: {{courseidnumber}}
                             </p>
                             {{competenciescompletedstring}}
-                            <br />                            
+                            <br />
                             {{attendancestring}}
                             <!-- Competências -->
                             <div class="lp-course-categories-full-report-course-competencies-tree">
@@ -631,15 +638,15 @@
                             <div class="lp-course-categories-full-report-course-competencies-task">
                                 <p>Grau para fins externos: {{externalgrade}}</p>
                                 <p>
-                                {{^coursemodules}}
-                                {{/coursemodules}}
-                                {{#coursemodules.0}}
-                                    <span class="fa fa-info-circle" aria-hidden="true"></span>
-                                    As competências desta disciplina são avaliadas em
-                                {{/coursemodules.0}}
-                                {{#coursemodules}}
-                                    <a href="{{url}}" class="competency_activities_avaliable">{{name}}</a>{{^lastitem}}, {{/lastitem}}
-                                {{/coursemodules}}
+                                    {{^coursemodules}}
+                                    {{/coursemodules}}
+                                    {{#coursemodules.0}}
+                                        <span class="fa fa-info-circle" aria-hidden="true"></span>
+                                        As competências desta disciplina são avaliadas em
+                                    {{/coursemodules.0}}
+                                    {{#coursemodules}}
+                                        <a href="{{url}}" class="competency_activities_avaliable">{{name}}</a>{{^lastitem}}, {{/lastitem}}
+                                    {{/coursemodules}}
                                 </p>
                             </div>
                         </div>
@@ -732,4 +739,3 @@ addCollapsibleActionsListener();
         });
     });
 {{/js}}
-

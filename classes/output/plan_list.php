@@ -259,17 +259,17 @@ class plan_list implements renderable, templatable {
 
         if (!empty($courseplan->enrolmentsuspended)) {
             $coursepassedidentifier .= 'enrolment_suspended';
-            $courseplan->coursepassedclass = 'ND';
+            $courseplan->coursepassedclass = 'enrolment-suspended';
         } else if (
             $courseplan->visible != 1
             || $courseplan->ongoing == 1 
         ) {
             $coursepassedidentifier .= 'ongoing';
-            $courseplan->coursepassedclass = '';
+            $courseplan->coursepassedclass = 'course-ongoing';
             $courseplan->attendancestring .= ' ' . get_string('course_attendance_so_far', 'block_lp_coursecategories');
         } else if ($is_pending_assessment_grading) { 
             $coursepassedidentifier .= 'ongoing'; 
-            $courseplan->coursepassedclass = '';            
+            $courseplan->coursepassedclass = 'course-ongoing';
         } else if (
             $competenciesok == 1
             && (

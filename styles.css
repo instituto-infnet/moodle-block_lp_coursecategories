@@ -140,6 +140,16 @@
     padding: 6px 8px;
 }
 
+.block_lp_coursecategories .label.enrolment-suspended {
+    background-color: #263238;
+    color: #fff;
+}
+
+.block_lp_coursecategories .label.course-ongoing {
+    background-color: #003f7a;
+    color: #fff;
+}
+
 .lp-course-categories-full-report-course-competencies {
     margin-left: 16px;
 }
