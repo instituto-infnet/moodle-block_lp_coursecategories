@@ -373,7 +373,12 @@ class plan_list implements renderable, templatable {
                 }
             }
                         
-            if((string)$mainBlockCourse->ongoing === '0' && (string)$mainBlockCourse->attendanceidentifier === 'course_attendance_insufficient' && $is_pb_pending_grading === false){
+            if(
+                (string)$mainBlockCourse->ongoing === '0'
+                && (string)$mainBlockCourse->attendanceidentifier === 'course_attendance_insufficient'
+                && $is_pb_pending_grading === false
+                && !$this->is_distance_course_attendance_exempt($mainBlockCourse)
+            ){
                 $courseplan->coursepassedidentifier = 'course_fail_pb';
                 $courseplan->coursepassedstring = get_string($courseplan->coursepassedidentifier, 'block_lp_coursecategories');
                 $courseplan->coursepassedclass = 'ND'; 
@@ -469,7 +474,15 @@ class plan_list implements renderable, templatable {
     }
 
     private function is_distance_course_attendance_exempt($courseplan) {
-        return $courseplan->distance === true
+        $distance = isset($courseplan->distance)
+            ? $courseplan->distance === true
+            : isset($courseplan->category2name)
+                && (
+                    preg_match('/\[GRL/', $courseplan->category2name) === 1
+                    || preg_match('/\[PGL/', $courseplan->category2name) === 1
+                );
+
+        return $distance
             && isset($courseplan->trimester)
             && $courseplan->trimester < '2026.3T';
     }
