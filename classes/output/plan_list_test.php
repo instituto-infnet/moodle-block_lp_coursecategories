@@ -1242,6 +1242,10 @@ class plan_list_test implements renderable, templatable {
     }
 
     private function format_cpf($cpf) {
+        if (preg_match('/^\d{3}\.\d{3}\.\d{3}-\d{2}$/', $cpf) === 1) {
+            return $cpf;
+        }
+
         return substr($cpf, 0, 3) . '.' .
             substr($cpf, 3, 3) . '.' .
             substr($cpf, 6, 3) . '-' .
