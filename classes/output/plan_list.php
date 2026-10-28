@@ -489,7 +489,6 @@ class plan_list implements renderable, templatable {
 
     private function get_plan_elective_course_categories() {
         global $DB;        
-        // Apenas as eletivas com o campo customizado "Infnet/Carga horária total" retornam na consulta abaixo
         $sql = "SELECT 
                     c.id AS courseid,
                     c.shortname AS courseidnumber,
@@ -541,7 +540,22 @@ class plan_list implements renderable, templatable {
                 WHERE 
                     ra.userid = ?
                     AND c.fullname NOT LIKE '%Projeto de Bloco I %'
-                    AND (cc3.name = 'Eletivas' OR cc2.name = 'Clube de Programação e Algoritmo')
+                    AND (
+                        cc2.name = 'Eletivas'
+                        OR cc3.name = 'Eletivas'
+                        OR cc2.name = 'Clube de Programação e Algoritmo'
+                        OR EXISTS (
+                            SELECT 1
+                            FROM mdl_course_categories extracurricularcategory
+                            JOIN mdl_course_categories extracurricularroot
+                                ON extracurricularroot.id = extracurricularcategory.parent
+                            WHERE extracurricularroot.name = 'Cursos Extracurriculares'
+                                AND extracurricularcategory.name IN (
+                                    'Eletivas', 'Clubes', 'Clube de Programação e Algoritmo'
+                                )
+                                AND CONCAT(cc.path, '/') LIKE CONCAT('%/', extracurricularcategory.id, '/%')
+                        )
+                    )
                 GROUP BY 
                     c.id, cfd.value;
         ";
