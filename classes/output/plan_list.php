@@ -477,14 +477,23 @@ class plan_list implements renderable, templatable {
         $distance = isset($courseplan->distance)
             ? $courseplan->distance === true
             : isset($courseplan->category2name)
-                && (
-                    preg_match('/\[GRL/', $courseplan->category2name) === 1
-                    || preg_match('/\[PGL/', $courseplan->category2name) === 1
-                );
+                && $this->is_distance_program_category($courseplan->category2name);
 
         return $distance
             && isset($courseplan->trimester)
             && $courseplan->trimester < '2026.3T';
+    }
+
+    private function is_distance_program_category($categoryname) {
+        return preg_match('/^\[?(?:GRL|PGL)/', $categoryname) === 1;
+    }
+
+    private function is_undergraduate_program_category($categoryname) {
+        return preg_match('/^\[?GR/', $categoryname) === 1;
+    }
+
+    private function is_postgraduate_program_category($categoryname) {
+        return preg_match('/^\[?PG/', $categoryname) === 1;
     }
 
     private function get_plan_elective_course_categories() {
@@ -701,30 +710,12 @@ class plan_list implements renderable, templatable {
                 cc.id categoryid,
                 cc.name categoryname,
                 cc.sortorder categorysortorder,
-                CASE 
-                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc2.id
-                    ELSE cc3.id
-                END category2id,
-                CASE 
-                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc2.name
-                    ELSE cc3.name
-                END category2name,
-                CASE 
-                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc3.id
-                    ELSE cc4.id
-                END category3id,
-                CASE 
-                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc3.name
-                    ELSE cc4.name
-                END category3name,
-                CASE 
-                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc4.id
-                    ELSE cc5.id
-                END category4id,
-                CASE 
-                    WHEN cc2.name like '[GR%' OR cc2.name like '[PG%' THEN cc4.name
-                    ELSE cc5.name
-                END category4name,
+                ccprogram.id category2id,
+                ccprogram.name category2name,
+                ccprogramparent.id category3id,
+                ccprogramparent.name category3name,
+                ccprogramgrandparent.id category4id,
+                ccprogramgrandparent.name category4name,
                 (
                     select COUNT(1)
                     from {course} c2
@@ -757,10 +748,23 @@ class plan_list implements renderable, templatable {
                 join {role} r on r.id = ra.roleid
                     and r.archetype = 'student'
                 join {course_categories} cc on cc.id = c.category
-                join {course_categories} cc2 on cc2.id = cc.parent
-                join {course_categories} cc3 on cc3.id = cc2.parent
-                join {course_categories} cc4 on cc4.id = cc3.parent
-                left join {course_categories} cc5 on cc5.id = cc4.parent
+                join {course_categories} ccprogram on ccprogram.id = (
+                    select candidate.id
+                    from {course_categories} candidate
+                    where concat(cc.path, '/') like concat(candidate.path, '/%')
+                        and (
+                            candidate.name like '[GR%'
+                            or candidate.name like '[PG%'
+                            or candidate.name like 'GR%'
+                            or candidate.name like 'PG%'
+                        )
+                    order by char_length(candidate.path) desc
+                    limit 1
+                )
+                left join {course_categories} ccprogramparent
+                    on ccprogramparent.id = ccprogram.parent
+                left join {course_categories} ccprogramgrandparent
+                    on ccprogramgrandparent.id = ccprogramparent.parent
                 left join {competency_coursecomp} ccc on ccc.courseid = c.id
                 left join {competency_usercompcourse} ucc on ucc.competencyid = ccc.competencyid
                     and ucc.userid = ra.userid
@@ -796,12 +800,6 @@ class plan_list implements renderable, templatable {
                 ) on cmq.course = c.id
             where ra.userid = ?
                 and c.fullname not like '%Projeto de Bloco I %'
-                and (
-                    cc2.name like '[GR%'
-                    or cc2.name like '[PG%'
-                    or cc3.name like '[GR%'
-                    or cc3.name like '[PG%'
-                )
             group by c.id
             ;
         ", array($this->user->id));
@@ -814,8 +812,7 @@ class plan_list implements renderable, templatable {
         $category2->categoryname = $plancategoryrecord->category2name;
         $category2->category3name = $plancategoryrecord->category3name;
         $category2->category4name = $plancategoryrecord->category4name;
-        $category2->distance = (preg_match('/\[GRL/', $category2->categoryname) === 1)
-            || (preg_match('/\[PGL/', $category2->categoryname) === 1);
+        $category2->distance = $this->is_distance_program_category($category2->categoryname);
 
         $category2->categories = array();
 
@@ -1000,9 +997,9 @@ class plan_list implements renderable, templatable {
                 $sortedcategories[] = $category;
                 
                 // Separate undergraduate (GRL) and postgraduate (PGLL) categories
-                if (preg_match('/\[GR/', $category->category2name) === 1) {
+                if ($this->is_undergraduate_program_category($category->category2name)) {
                     $undergraduatecategories[] = $category;
-                } else if (preg_match('/\[PG/', $category->category2name) === 1) {
+                } else if ($this->is_postgraduate_program_category($category->category2name)) {
                     $postgraduatecategories[] = $category;
                 }
             }
